@@ -1,5 +1,8 @@
 #include "Renderer.h"
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <iostream>
 
 Renderer::Renderer(int width, int height)
@@ -11,16 +14,24 @@ Renderer::Renderer(int width, int height)
     , vao(0)
     , vbo(0)
     , ebo(0)
+    , frameIndex(0)
+    , maxFrames(100)
 {
+    frameTimes.resize(maxFrames, 0.0f);
     InitOpenGL();
     InitCUDA();
     CreateTexture();
     RegisterCUDAResources();
     SetupQuad();
+    SetupImGui();
 }
 
 Renderer::~Renderer()
 {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     UnregisterCUDAResources();
     if (vao != 0) glDeleteVertexArrays(1, &vao);
     if (ebo != 0) glDeleteBuffers(1, &ebo);
@@ -53,6 +64,7 @@ void Renderer::InitOpenGL()
         exit(EXIT_FAILURE);
     }
 
+    glfwSwapInterval(1);
     glViewport(0, 0, width, height);
 }
 
@@ -128,10 +140,44 @@ void Renderer::SetupQuad()
     glBindVertexArray(0);
 }
 
+void Renderer::SetupImGui() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 450");
+}
+
 void Renderer::Render()
 {
+    double lastTime = glfwGetTime();
+    long long int frameCount = 0;
+
     while (!glfwWindowShouldClose(window))
     {
+        // Calculate FPS
+        double currentTime = glfwGetTime();
+        double deltaTime = currentTime - lastTime;
+
+        if (deltaTime >= 1.0f / 60.0f) { // If one second has passed, update FPS counter
+            float fps = frameCount / static_cast<float>(deltaTime);
+
+            // Update frameTimes and reset counters
+            frameTimes[frameIndex] = fps;
+            frameIndex = (frameIndex + 1) % maxFrames;
+            frameCount = 0;
+            lastTime = currentTime;
+        }
+
+        frameCount++;
+
+        // Start the ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         // Map CUDA resource
         cudaArray* textureArray;
         cudaGraphicsMapResources(1, &cudaTextureResource, 0);
@@ -149,6 +195,16 @@ void Renderer::Render()
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        // Display FPS
+        ImGui::Begin("Performance");
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::PlotLines("FPS", frameTimes.data(), maxFrames, frameIndex, nullptr, 0.0f, 100.0f, ImVec2(0, 80));
+        ImGui::End();
+
+        // Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();

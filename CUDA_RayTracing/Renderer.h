@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <cuda_gl_interop.h>
+#include <vector>
 
 class Renderer {
 public:
@@ -17,7 +18,7 @@ private:
     void CreateTexture();
     void RegisterCUDAResources();
     void UnregisterCUDAResources();
-
+    void SetupImGui();
     void SetupQuad();
 
 
@@ -27,4 +28,8 @@ private:
     int width, height;
 
     GLuint vao, vbo, ebo;
+
+    std::vector<float> frameTimes;
+    int frameIndex;
+    const int maxFrames;
 };

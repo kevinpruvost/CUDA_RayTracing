@@ -81,7 +81,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -98,7 +98,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,7 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,7 +132,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +153,9 @@
   <ItemGroup>
     <ProjectReference Include="..\lib\glad\glad.vcxproj">
       <Project>{bc1635d4-c3f0-4ace-9cbf-af0ab85094ea}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\lib\imgui\imgui.vcxproj">
+      <Project>{38045129-b71d-40ed-b787-402d6dd5848a}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
