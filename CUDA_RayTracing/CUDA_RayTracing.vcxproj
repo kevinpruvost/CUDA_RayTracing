@@ -146,8 +146,10 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Renderer_CUDA.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="RayTracer.cuh" />
     <ClInclude Include="Renderer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +159,9 @@
     <ProjectReference Include="..\lib\imgui\imgui.vcxproj">
       <Project>{38045129-b71d-40ed-b787-402d6dd5848a}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="RayTracer.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

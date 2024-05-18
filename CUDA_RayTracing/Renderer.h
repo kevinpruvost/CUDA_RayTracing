@@ -20,7 +20,7 @@ private:
     void UnregisterCUDAResources();
     void SetupImGui();
     void SetupQuad();
-
+    void launchCudaKernel(cudaArray* textureArray, int width, int height);
 
     GLFWwindow* window;
     GLuint texture;

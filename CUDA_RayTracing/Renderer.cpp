@@ -150,10 +150,58 @@ void Renderer::SetupImGui() {
     ImGui_ImplOpenGL3_Init("#version 450");
 }
 
+static constexpr const char* shaderVert = R"(
+#version 330 core
+layout(location = 0) in vec2 aPos;
+layout(location = 1) in vec2 aTexCoord;
+
+out vec2 TexCoord;
+
+void main() {
+    gl_Position = vec4(aPos, 0.0, 1.0);
+    TexCoord = aTexCoord;
+}
+)";
+
+static constexpr const char* shaderFrag = R"(
+#version 330 core
+out vec4 FragColor;
+
+in vec2 TexCoord;
+
+uniform sampler2D screenTexture;
+
+void main() {
+    FragColor = texture(screenTexture, TexCoord);
+}
+)";
+
+static GLuint createShaderProgram(const char* vert, const char* frag)
+{
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vert, nullptr);
+    glCompileShader(vertexShader);
+
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &frag, nullptr);
+    glCompileShader(fragmentShader);
+
+    GLuint shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    return shaderProgram;
+}
+
 void Renderer::Render()
 {
     double lastTime = glfwGetTime();
     long long int frameCount = 0;
+    GLuint shaderProgram = createShaderProgram(shaderVert, shaderFrag);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -184,16 +232,20 @@ void Renderer::Render()
         cudaGraphicsSubResourceGetMappedArray(&textureArray, cudaTextureResource, 0, 0);
 
         // Launch CUDA kernel to write to the texture (pseudo-code, replace with actual kernel call)
-        // launchCudaKernel(textureArray, width, height);
+        launchCudaKernel(textureArray, width, height);
 
         cudaGraphicsUnmapResources(1, &cudaTextureResource, 0);
 
         // Render the texture to the screen
         glClear(GL_COLOR_BUFFER_BIT);
+        glUseProgram(shaderProgram);
+
         glBindTexture(GL_TEXTURE_2D, texture);
+
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
         glBindTexture(GL_TEXTURE_2D, 0);
 
         // Display FPS
@@ -209,4 +261,6 @@ void Renderer::Render()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glDeleteProgram(shaderProgram);
 }
