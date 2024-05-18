@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34701.34
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CUDA_RayTracing", "CUDA_RayTracing.vcxproj", "{A10C53D8-1F18-4421-9438-3C09F4F01404}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glad", "..\lib\glad\glad.vcxproj", "{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Debug|x64.ActiveCfg = Debug|x64
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Debug|x64.Build.0 = Debug|x64
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Debug|x86.ActiveCfg = Debug|Win32
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Debug|x86.Build.0 = Debug|Win32
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Release|x64.ActiveCfg = Release|x64
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Release|x64.Build.0 = Release|x64
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Release|x86.ActiveCfg = Release|Win32
+		{A10C53D8-1F18-4421-9438-3C09F4F01404}.Release|x86.Build.0 = Release|Win32
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Debug|x64.ActiveCfg = Debug|x64
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Debug|x64.Build.0 = Debug|x64
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Debug|x86.ActiveCfg = Debug|Win32
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Debug|x86.Build.0 = Debug|Win32
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Release|x64.ActiveCfg = Release|x64
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Release|x64.Build.0 = Release|x64
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Release|x86.ActiveCfg = Release|Win32
+		{BC1635D4-C3F0-4ACE-9CBF-AF0AB85094EA}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AF382129-B3AB-4E2A-BB88-5F7A849AA54F}
+	EndGlobalSection
+EndGlobal
