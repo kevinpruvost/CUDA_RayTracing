@@ -2,6 +2,7 @@
 #include <math_functions.h>
 #include <device_launch_parameters.h>
 #include <iostream>
+#include <curand_kernel.h>
 
 // Utility function to normalize a float3
 __device__ float3 normalize(const float3& v) {
@@ -51,11 +52,11 @@ __global__ void rayTraceKernel(uchar4* output, int width, int height) {
 // Wrapper function to launch the kernel
 void launchRayTraceKernel(uchar4 * d_output, int width, int height) {
     // Define block and grid sizes
-    dim3 blockSize(16, 16);
-    dim3 gridSize((width + blockSize.x - 1) / blockSize.x, (height + blockSize.y - 1) / blockSize.y);
+    dim3 threadsPerBlock(16, 16);
+    dim3 blocksPerGrid((width + threadsPerBlock.x - 1) / threadsPerBlock.x, (height + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     // Launch the kernel
-    rayTraceKernel<<<gridSize, blockSize>>>(d_output, width, height);
+    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >>>(d_output, width, height);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();
