@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <cuda_gl_interop.h>
 #include <vector>
+#include "raytracer.h"
 
 class Renderer {
 public:
@@ -20,7 +21,7 @@ private:
     void UnregisterCUDAResources();
     void SetupImGui();
     void SetupQuad();
-    void launchCudaKernel(cudaArray* textureArray, int width, int height);
+    void launchCudaKernel(cudaArray* textureArray, int width, int height, Raytracer * cpuScene);
 
     GLFWwindow* window;
     GLuint texture;

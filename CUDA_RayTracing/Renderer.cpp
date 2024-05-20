@@ -4,6 +4,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <iostream>
+#include "raytracer.h"
 
 Renderer::Renderer(int width, int height)
     : width(width)
@@ -199,6 +200,10 @@ static GLuint createShaderProgram(const char* vert, const char* frag)
 
 void Renderer::Render()
 {
+    Raytracer raytracer;
+    raytracer.SetInput("./scene1.txt");
+    raytracer.CreateAll();
+
     double lastTime = glfwGetTime();
     long long int frameCount = 0;
     GLuint shaderProgram = createShaderProgram(shaderVert, shaderFrag);
@@ -232,7 +237,7 @@ void Renderer::Render()
         cudaGraphicsSubResourceGetMappedArray(&textureArray, cudaTextureResource, 0, 0);
 
         // Launch CUDA kernel to write to the texture (pseudo-code, replace with actual kernel call)
-        launchCudaKernel(textureArray, width, height);
+        launchCudaKernel(textureArray, width, height, &raytracer);
 
         cudaGraphicsUnmapResources(1, &cudaTextureResource, 0);
 

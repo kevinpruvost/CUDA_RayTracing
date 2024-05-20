@@ -123,6 +123,13 @@
       <AdditionalLibraryDirectories>$(ProjectDir)..\lib\glfw\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y "$(SolutionDir)resources\*" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+    <CudaCompile />
+    <CudaCompile>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -142,15 +149,43 @@
       <AdditionalLibraryDirectories>$(ProjectDir)..\lib\glfw\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y "$(SolutionDir)resources\*" "$(TargetDir)"</Command>
+    </PostBuildEvent>
+    <CudaCompile />
+    <CudaCompile>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bmp.cpp" />
+    <ClCompile Include="camera.cpp" />
+    <ClCompile Include="color.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="primitive.cpp" />
+    <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Renderer_CUDA.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="vector3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bmp.h" />
+    <ClInclude Include="Camera.cuh" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="color.h" />
+    <ClInclude Include="Light.cuh" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Primitive.cuh" />
+    <ClInclude Include="primitive.h" />
     <ClInclude Include="RayTracer.cuh" />
+    <ClInclude Include="raytracer.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Scene.cuh" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="solver.h" />
+    <ClInclude Include="vector3.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\glad\glad.vcxproj">
@@ -161,7 +196,37 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="Primitive.cu" />
     <CudaCompile Include="RayTracer.cu" />
+    <CudaCompile Include="Scene.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\blackwhite.bmp">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="resources\blue.bmp">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="resources\brown.bmp">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="resources\estuary.bmp">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="resources\floor.bmp">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+    <Image Include="resources\marble.bmp">
+      <DeploymentContent>true</DeploymentContent>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\scene1.txt">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
+    <Text Include="resources\scene2.txt">
+      <DeploymentContent>true</DeploymentContent>
+    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

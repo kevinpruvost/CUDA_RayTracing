@@ -1,30 +1,123 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Scene.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="raytracer.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="vector3.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="bmp.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="color.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="primitive.cpp">
+      <Filter>Scene_From_Learning</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer_CUDA.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Renderer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="RayTracer.cuh" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Scene.h">
+      <Filter>Scene_From_Learning</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="primitive.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="raytracer.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="solver.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="vector3.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="bmp.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>Scene_From_Learning</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.cuh">
+      <Filter>Scene_GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.cuh">
+      <Filter>Scene_GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.cuh">
+      <Filter>Scene_GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.cuh">
+      <Filter>Scene_GPU</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="RayTracer.cu" />
+    <CudaCompile Include="Scene.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Primitive.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{96e96392-a4a6-4f8e-94d7-130f5d3fa0ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene_From_Learning">
+      <UniqueIdentifier>{73ca1513-c74d-484b-8439-8991fe9589a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene_GPU">
+      <UniqueIdentifier>{78d1c774-b2c8-4659-a252-a507b8b24e2a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\brown.bmp">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="resources\estuary.bmp">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="resources\floor.bmp">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="resources\marble.bmp">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="resources\blackwhite.bmp">
+      <Filter>Resources</Filter>
+    </Image>
+    <Image Include="resources\blue.bmp">
+      <Filter>Resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\scene1.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene2.txt">
+      <Filter>Resources</Filter>
+    </Text>
   </ItemGroup>
 </Project>
