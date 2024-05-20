@@ -2,7 +2,6 @@
 #include <math_functions.h>
 #include <device_launch_parameters.h>
 #include <iostream>
-#include <curand_kernel.h>
 
 // Utility function to normalize a float3
 __device__ float3 normalize(const float3& v) {
@@ -30,13 +29,11 @@ __device__ float3 traceRay(const float3& origin, const float3& direction) {
     return lerp({ 1.0f, 1.0f, 1.0f }, { 0.5f, 0.7f, 1.0f }, t);
 }
 
-__global__ void rayTraceKernel(uchar4* output, int width, int height) {
+__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int height) {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (x >= width || y >= height) return;
-
-    int idx = y * width + x;
 
     float u = float(x) / float(width);
     float v = float(y) / float(height);
@@ -46,17 +43,18 @@ __global__ void rayTraceKernel(uchar4* output, int width, int height) {
 
     float3 color = traceRay(origin, direction);
 
-    output[idx] = make_uchar4(color.x * 255, color.y * 255, color.z * 255, 255);
+    uchar4 outputColor = make_uchar4(color.x * 255, color.y * 255, color.z * 255, 255);
+    surf2Dwrite(outputColor, surface, x * sizeof(uchar4), y);
 }
 
 // Wrapper function to launch the kernel
-void launchRayTraceKernel(uchar4 * d_output, int width, int height) {
+void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height) {
     // Define block and grid sizes
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid((width + threadsPerBlock.x - 1) / threadsPerBlock.x, (height + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     // Launch the kernel
-    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >>>(d_output, width, height);
+    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, width, height);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();

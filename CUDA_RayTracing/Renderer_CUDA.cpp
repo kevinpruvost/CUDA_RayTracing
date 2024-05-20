@@ -1,18 +1,21 @@
 #include "Renderer.h"
 #include "Raytracer.cuh"
 
+// Renderer function to launch the kernel and work with surfaces
 void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height)
 {
-    // Allocate device memory for the output image
-    uchar4* d_output;
-    cudaMalloc(&d_output, width * height * sizeof(uchar4));
+    // Create a surface object
+    cudaResourceDesc resDesc;
+    memset(&resDesc, 0, sizeof(resDesc));
+    resDesc.resType = cudaResourceTypeArray;
+    resDesc.res.array.array = textureArray;
+
+    cudaSurfaceObject_t surfaceObject = 0;
+    cudaCreateSurfaceObject(&surfaceObject, &resDesc);
 
     // Launch the kernel via the wrapper function
-    launchRayTraceKernel(d_output, width, height);
+    launchRayTraceKernel(surfaceObject, width, height);
 
-    // Copy the results to the texture array
-    cudaMemcpy2DToArray(textureArray, 0, 0, d_output, width * sizeof(uchar4), width * sizeof(uchar4), height, cudaMemcpyDeviceToDevice);
-
-    // Cleanup
-    cudaFree(d_output);
+    // Clean up
+    cudaDestroySurfaceObject(surfaceObject);
 }
