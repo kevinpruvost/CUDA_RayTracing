@@ -15,9 +15,13 @@ struct Cuda_Scene
     int lightCount;
     Cuda_Primitive * primitives;
     int primitiveCount;
-    double3 * resampling_surface;
+    unsigned long * seeds;
 };
 
-__device__ double3 traceRay(Cuda_Scene * scene, double x, double y, int depth);
+__device__ double3 traceRay(Cuda_Scene * scene, double3 origin, double3 direction, int depth);
+__device__ double2 GetBlur();
+__device__ double3 CalnDiffusion(Cuda_Scene* scene, Cuda_Collision* collide_primitive);
+__device__ double3 CalnReflection(Cuda_Scene * scene, Cuda_Collision * collide_primitive, double3 ray_V, int dep);
+__device__ double3 CalnRefraction(Cuda_Scene* scene, Cuda_Collision* collide_primitive, double3 ray_V, int dep);
 
 #endif // !SCENE_CUH

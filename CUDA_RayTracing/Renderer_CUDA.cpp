@@ -220,6 +220,15 @@ Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int hei
     MEMCPY(&(scene->primitives), &primitives, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
     MEMCPY(&(scene->primitiveCount), &primitiveCount, sizeof(int), cudaMemcpyHostToDevice);
 
+    // Random seeds
+    unsigned long randomSeeds[BLOCK_SIZE * BLOCK_SIZE];
+    for (int i = 0; i < BLOCK_SIZE * BLOCK_SIZE; i++) {
+        randomSeeds[i] = rand();
+    }
+    unsigned long* d_seeds;
+    MALLOC(&d_seeds, BLOCK_SIZE * BLOCK_SIZE * sizeof(unsigned long));
+    MEMCPY(d_seeds, randomSeeds, BLOCK_SIZE * BLOCK_SIZE * sizeof(unsigned long), cudaMemcpyHostToDevice);
+    MEMCPY(&(scene->seeds), &d_seeds, sizeof(unsigned long*), cudaMemcpyHostToDevice);
     return scene;
 }
 
@@ -227,6 +236,9 @@ void FreeCudaScene(Cuda_Scene* cudaScene)
 {
     Cuda_Scene scene_freer;
     MEMCPY(&scene_freer, cudaScene, sizeof(Cuda_Scene), cudaMemcpyDeviceToHost);
+
+    // Free random seeds
+    FREE(scene_freer.seeds);
 
     // Free primitives
     FREE(scene_freer.primitives);
@@ -262,7 +274,10 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, 
     cudaCreateSurfaceObject(&surfaceObject, &resDesc);
 
     if (sceneContainer.get() == nullptr)
+    {
         sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(cpuScene, width, height)));
+        cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
+    }
 
     // Launch the kernel via the wrapper function
     launchRayTraceKernel(surfaceObject, width, height, sceneContainer->m_scene);

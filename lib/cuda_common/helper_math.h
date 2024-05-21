@@ -1769,7 +1769,7 @@ inline __host__ __device__ float3 reflect(float3 i, float3 n)
 
 inline __host__ __device__ double3 reflect(double3 i, double3 n)
 {
-    return i - 2.0 * n * dot(n,i);
+    return i - n * (2 * dot(n,i));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1836,6 +1836,31 @@ inline __host__ __device__ double3 operator+=(double3& a, const uchar3& b) {
     a.y += b.y;
     a.z += b.z;
     return a;
+}
+
+// Vertical Vector
+//Vector3 Vector3::GetAnVerticalVector() const
+//{
+//    Vector3 ret = *this * Vector3(0, 0, 1);
+//    if (ret.IsZeroVector()) {
+//        ret = Vector3(1, 0, 0);
+//    }
+//    else {
+//        ret = ret.GetUnitVector();
+//    }
+//    return ret;
+//}
+
+inline __host__ __device__ double3 GetAnVerticalVector(double3 v)
+{
+    double3 ret = cross(v, make_double3(0, 0, 1));
+    if (fabs(ret.x) < 1e-6 && fabs(ret.y) < 1e-6 && fabs(ret.z) < 1e-6) {
+        ret = make_double3(1, 0, 0);
+    }
+    else {
+        ret = normalize(ret);
+    }
+    return ret;
 }
 
 #ifndef M_PI

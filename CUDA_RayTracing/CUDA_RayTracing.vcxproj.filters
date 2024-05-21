@@ -30,7 +30,6 @@
     <ClCompile Include="Renderer_CUDA.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RayTracer.cuh" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h">
       <Filter>Scene_From_Learning</Filter>
@@ -71,9 +70,9 @@
     <ClInclude Include="Primitive.cuh">
       <Filter>Scene_GPU</Filter>
     </ClInclude>
+    <ClInclude Include="RayTracer.cuh" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="RayTracer.cu" />
     <CudaCompile Include="Scene.cu">
       <Filter>Scene_GPU</Filter>
     </CudaCompile>
@@ -86,6 +85,10 @@
     <CudaCompile Include="Shade.cu">
       <Filter>Scene_GPU</Filter>
     </CudaCompile>
+    <CudaCompile Include="Scene_Material.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
+    <CudaCompile Include="RayTracer.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resources">

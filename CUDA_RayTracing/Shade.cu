@@ -23,7 +23,8 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
             if (&primitives[i] == crashed_Primitive) continue;
             Cuda_Primitive* primitive = &primitives[i];
             Cuda_Collision tmp = InitCudaCollision();
-            if (intersect(primitive, C, V, &tmp) && tmp.dist < dist)
+            intersect(primitive, &C, &V, &tmp);
+            if (tmp.dist < dist)
             {
                 return 0.0f;
             }
@@ -49,14 +50,44 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
                 Cuda_Primitive* primitive = &primitives[j];
                 if (primitive == light->lightPrimitive) continue;
                 Cuda_Collision tmp;
-                if (intersect(primitive, C, V, &tmp) && tmp.dist < dist)
+                intersect(primitive, &C, &V, &tmp);
+                if (tmp.dist < dist)
                 {
                     shade += 1.0f;
                     break;
                 }
             }
         }
+        shade /= shade_quality;
+        break;
+    }
+    case Cuda_Light_Type_Sphere:
+    {
+        for (int i = 0; i < shade_quality; i++)
+        {
+            // sample a point light from light primitive
+            double3 randO = GetRandPointLight(C, light);
 
+            // light ray from diffuse point to point light
+            double3 V = randO - C;
+            double dist = length(V);
+
+            int addShade = 1;
+            // if light ray collide any object, light source produce no shade to diffuse light
+            for (int j = 0; j < primitivesCount; ++j)
+            {
+                Cuda_Primitive* primitive = &primitives[j];
+                if (primitive == light->lightPrimitive) continue;
+                Cuda_Collision tmp;
+                intersect(primitive, &C, &V, &tmp);
+                if (tmp.dist < dist)
+                {
+                    addShade = 0;
+                    break;
+                }
+            }
+            shade += addShade;
+        }
         shade /= shade_quality;
         break;
     }

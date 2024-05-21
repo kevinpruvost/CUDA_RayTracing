@@ -209,6 +209,7 @@
     <CudaCompile Include="Collision.cu" />
     <CudaCompile Include="Primitive.cu" />
     <CudaCompile Include="RayTracer.cu" />
+    <CudaCompile Include="Scene_Material.cu" />
     <CudaCompile Include="Scene.cu" />
     <CudaCompile Include="Shade.cu" />
   </ItemGroup>
