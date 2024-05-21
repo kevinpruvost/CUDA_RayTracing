@@ -51,40 +51,40 @@ end
 
 # left wall
 primitive sphere
-    O= 100001 -81.6 40.8
-    R= 100000
+    O= 10001 -81.6 40.8
+    R= 10000
     color= 0.78 0.39 0.39
     diff= 1
 end
 
 # right wall
 primitive sphere
-    O= -99901 -81.6 40.8
-    R= 100000
+    O= -9901 -81.6 40.8
+    R= 10000
     color= 0.45 0.39 0.86
     diff= 1
 end
 
 # back wall
 primitive sphere
-    O= 50 -100000 40.8
-    R= 100000
+    O= 50 -10000 40.8
+    R= 10000
     color= 0.8 0.8 0.8
     diff= 1
 end
 
 # front wall
 primitive sphere
-    O= 50 99700 40.8
-    R= 100000
+    O= 50 9700 40.8
+    R= 10000
     color= .1 .1 .1
     diff= 1
 end
 
 # ceil
 primitive sphere
-    O= 50 -81.6 -99919
-    R= 100000
+    O= 50 -81.6 -9919
+    R= 10000
     color= 0.78 0.78 0.78
     diff= 1
 end
@@ -97,7 +97,7 @@ primitive plane
     diff= 0.7
     refl= 0.1
     drefl= 0.15
-    texture= src/floor.bmp
+    texture= floor.bmp
     Dx= 99 0 0
     Dy= 0 99 0
     blur= exp
@@ -109,7 +109,7 @@ primitive sphere
     O= 27 -47 16
     R= 16
     color= 1 1 1
-    texture= src/marble.bmp
+    texture= marble.bmp
     De= 0 0 1
     Dc= 0 1 0
     diff= 0.45

@@ -37,7 +37,7 @@ primitive plane
     diff= 0.7
     refl= 0.1
     drefl= 0.15
-    texture= src/floor.bmp
+    texture= floor.bmp
     Dx= 99 0 0
     Dy= 0 99 0
     blur= exp
@@ -49,7 +49,7 @@ primitive sphere
     O= 27 -47 16
     R= 16
     color= 1 1 1
-    texture= src/marble.bmp
+    texture= marble.bmp
     De= 0 0 1
     Dc= 0 1 0
     diff= 0.45
@@ -89,7 +89,7 @@ primitive sphere
     R= 50
     refl= 0.3
     drefl= 0.15
-    texture= src/estuary.bmp
+    texture= estuary.bmp
     color= 1 0.8 0
     diff= 1
     spec= 0.8
@@ -100,7 +100,7 @@ primitive sphere
     O= -40 80 30
     R= 30
     color= 1 1 1
-    texture= src/estuary.bmp
+    texture= estuary.bmp
     De= 0 0 1
     Dc= 0 1 0
     diff= 0.45

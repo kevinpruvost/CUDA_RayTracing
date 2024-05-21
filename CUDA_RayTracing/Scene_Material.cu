@@ -39,7 +39,7 @@ __device__ double3 CalnDiffusion(Cuda_Scene* scene, Cuda_Collision* collide_prim
 
     for (int i = 0; i < scene->lightCount; ++i) {
         Cuda_Light* light = &scene->lights[i];
-        double shade = CalnShade(collide_primitive->C, primitive, light, scene->primitives, scene->primitiveCount, int(16 * scene->camera.shade_quality));
+        double shade = CalnShade(collide_primitive->C, primitive, light, scene->primitives, scene->primitiveCount, int(4 * scene->camera.shade_quality));
         if (shade < 1e-6) {
             continue;
         }
@@ -97,22 +97,22 @@ __device__ double3 CalnReflection(Cuda_Scene* scene, Cuda_Collision* collide_pri
         return traceRay(scene, collide_primitive->C, fuzzy_V, dep + 1) * primitive->material.color * primitive->material.refl;
     }
 }
-//
-//__device__ double3 CalnRefraction(Cuda_Scene* scene, Cuda_Collision * collide_primitive, double3 ray_V, int dep) {
-//    Cuda_Primitive* primitive = collide_primitive->collide_primitive;
-//    double n = primitive->material.rindex;
-//    if (collide_primitive->front) {
-//        n = 1.0 / n;
-//    }
-//
-//    ray_V = refract(ray_V, collide_primitive->N, n);
-//    double3 rcol = traceRay(scene, collide_primitive->C, ray_V, dep + 1);
-//
-//    if (collide_primitive->front) {
-//        return rcol * primitive->material.refr;
-//    }
-//
-//    double3 absor = primitive->material.absor * -collide_primitive->dist;
-//    double3 trans = make_double3(exp(absor.x), exp(absor.y), exp(absor.z));
-//    return rcol * trans * primitive->material.refr;
-//}
+
+__device__ double3 CalnRefraction(Cuda_Scene* scene, Cuda_Collision * collide_primitive, double3 ray_V, int dep) {
+    Cuda_Primitive* primitive = collide_primitive->collide_primitive;
+    double n = primitive->material.rindex;
+    if (collide_primitive->front) {
+        n = 1.0 / n;
+    }
+
+    ray_V = Refract(ray_V, collide_primitive->N, n);
+    double3 rcol = traceRay(scene, collide_primitive->C, ray_V, dep + 1);
+
+    if (collide_primitive->front) {
+        return rcol * primitive->material.refr;
+    }
+
+    double3 absor = primitive->material.absor * -collide_primitive->dist;
+    double3 trans = make_double3(exp(absor.x), exp(absor.y), exp(absor.z));
+    return rcol * trans * primitive->material.refr;
+}

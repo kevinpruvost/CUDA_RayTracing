@@ -24,7 +24,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
             Cuda_Primitive* primitive = &primitives[i];
             Cuda_Collision tmp = InitCudaCollision();
             intersect(primitive, &C, &V, &tmp);
-            if (tmp.dist < dist)
+            if (dist - tmp.dist > 1e-6)
             {
                 return 0.0f;
             }
@@ -44,19 +44,21 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
             double3 V = randO - C;
             double dist = length(V);
 
+            int addShade = 1;
             // if light ray collide any object, light source produce no shade to diffuse light
             for (int j = 0; j < primitivesCount; ++j)
             {
                 Cuda_Primitive* primitive = &primitives[j];
-                if (primitive == light->lightPrimitive) continue;
-                Cuda_Collision tmp;
+                if (primitive == crashed_Primitive || primitive == light->lightPrimitive) continue;
+                Cuda_Collision tmp = InitCudaCollision();
                 intersect(primitive, &C, &V, &tmp);
-                if (tmp.dist < dist)
+                if (dist - tmp.dist > 1e-6)
                 {
-                    shade += 1.0f;
+                    addShade = 0;
                     break;
                 }
             }
+            shade += addShade;
         }
         shade /= shade_quality;
         break;
@@ -77,10 +79,10 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
             for (int j = 0; j < primitivesCount; ++j)
             {
                 Cuda_Primitive* primitive = &primitives[j];
-                if (primitive == light->lightPrimitive) continue;
-                Cuda_Collision tmp;
+                if (primitive == crashed_Primitive || primitive == light->lightPrimitive) continue;
+                Cuda_Collision tmp = InitCudaCollision();
                 intersect(primitive, &C, &V, &tmp);
-                if (tmp.dist < dist)
+                if (dist - tmp.dist > 1e-6)
                 {
                     addShade = 0;
                     break;

@@ -213,7 +213,6 @@ void Raytracer::CreateAll()
             if ( type == "sphere" ) new_primitive = new Sphere;
             if ( type == "plane" ) new_primitive = new Plane;
             if ( type == "square" ) new_primitive = new Square;
-            // TODO: IMPLEMENT HERE
             //if ( type == "cylinder" ) new_primitive = new Cylinder;
             //if ( type == "bezier" ) new_primitive = new Bezier;
 
@@ -226,8 +225,7 @@ void Raytracer::CreateAll()
             std::string type; fin >> type;
             if ( type == "point" ) new_light = new PointLight;
             if ( type == "square" ) new_light = new SquareLight;
-            // TODO: IMPLEMENT HERE
-            //if ( type == "sphere" ) new_light = new SphereLight;
+            if ( type == "sphere" ) new_light = new SphereLight;
 
             if ( new_light != nullptr ) {
                 new_light->SetNext( light_head );

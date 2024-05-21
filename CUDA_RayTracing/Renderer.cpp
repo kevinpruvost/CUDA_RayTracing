@@ -201,7 +201,7 @@ static GLuint createShaderProgram(const char* vert, const char* frag)
 void Renderer::Render()
 {
     Raytracer raytracer;
-    raytracer.SetInput("./scene1.txt");
+    raytracer.SetInput("./scene3.txt");
     raytracer.SetOutput("./test.bmp");
     raytracer.CreateAll();
     //raytracer.MultiThreadRun();

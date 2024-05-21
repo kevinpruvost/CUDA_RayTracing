@@ -1863,6 +1863,24 @@ inline __host__ __device__ double3 GetAnVerticalVector(double3 v)
     return ret;
 }
 
+// Refract
+//Vector3 Vector3::Refract(Vector3 N, double n) const
+//{
+//    Vector3 V = GetUnitVector();
+//    double cosI = -N.Dot(V), cosT2 = 1 - (n * n) * (1 - cosI * cosI);
+//    if (cosT2 > EPS) return V * n + N * (n * cosI - sqrt(cosT2));
+//    return V.Reflect(N);
+//}
+
+inline __host__ __device__ double3 Refract(double3 V, double3 N, double n)
+{
+    V = normalize(V);
+    double cosI = -dot(N, V), cosT2 = 1 - (n * n) * (1 - cosI * cosI);
+    if (cosT2 > 1e-6) return V * n + N * (n * cosI - sqrt(cosT2));
+    return reflect(V, N);
+}
+
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif

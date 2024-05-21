@@ -42,7 +42,7 @@ __device__ double3 traceRay(Cuda_Scene* scene, double3 origin, double3 direction
                 color += CalnReflection(scene, &collision, direction, depth);
             }
             if (prim->material.refr > 1e-6) {
-                //color += CalnRefraction(&collision, direction, depth);
+                color += CalnRefraction(scene, &collision, direction, depth);
             }
         }
     }
