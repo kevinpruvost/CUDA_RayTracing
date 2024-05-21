@@ -7,6 +7,9 @@ __device__ Cuda_Collision InitCudaCollision()
     collision.isCollide = false;
     collision.collide_primitive = NULL;
     collision.dist = BIG_DIST;
+    collision.front = false;
+    collision.N = make_double3(0, 0, 0);
+    collision.C = make_double3(0, 0, 0);
     return collision;
 }
 

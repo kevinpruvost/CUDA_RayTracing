@@ -5,7 +5,7 @@ __device__ double3 GetRandPointLight(double3 C, Cuda_Light* light)
     return light->O + light->Dx * (2 * frand() - 1.0) + light->Dy * (2 * frand() - 1.0);
 }
 
-__device__ double CalnShade(double3 C, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality)
+__device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality)
 {
     double shade = 0.0f;
 
@@ -20,10 +20,10 @@ __device__ double CalnShade(double3 C, Cuda_Light* light, Cuda_Primitive* primit
         // if light ray collide any object, light source produce no shade to diffuse light
         for (int i = 0; i < primitivesCount; ++i)
         {
+            if (&primitives[i] == crashed_Primitive) continue;
             Cuda_Primitive* primitive = &primitives[i];
             Cuda_Collision tmp = InitCudaCollision();
-            intersect(primitive, C, V, &tmp);
-            if (tmp.isCollide && dist - tmp.dist > 1e-6)
+            if (intersect(primitive, C, V, &tmp) && tmp.dist < dist)
             {
                 return 0.0f;
             }
@@ -47,9 +47,9 @@ __device__ double CalnShade(double3 C, Cuda_Light* light, Cuda_Primitive* primit
             for (int j = 0; j < primitivesCount; ++j)
             {
                 Cuda_Primitive* primitive = &primitives[j];
+                if (primitive == light->lightPrimitive) continue;
                 Cuda_Collision tmp;
-                intersect(primitive, C, V, &tmp);
-                if (dist - tmp.dist > 1e-6)
+                if (intersect(primitive, C, V, &tmp) && tmp.dist < dist)
                 {
                     shade += 1.0f;
                     break;

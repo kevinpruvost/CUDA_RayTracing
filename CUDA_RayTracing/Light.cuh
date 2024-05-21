@@ -25,6 +25,6 @@ struct Cuda_Light
 };
 
 __device__ double3 GetRandPointLight(double3 C, Cuda_Light* light);
-__device__ double CalnShade(double3 C, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality);
+__device__ double CalnShade(double3 C, Cuda_Primitive* crashed_Primitive, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality);
 
 #endif

@@ -15,18 +15,14 @@ __device__ bool intersect(Cuda_Primitive* primitive, double3 origin, double3 dir
             {
                 det = sqrt(det);
                 double x1 = b - det, x2 = b + det;
-                bool front = (x1 > 1e-6);
-                double temp = (x1 > 1e-6) ? x1 : ((x2 > 1e-6) ? x2 : 0);
-                if (temp < collision->dist && temp != 0)
-                {
-                    collision->dist = temp;
-                    collision->C = origin + direction * collision->dist;
-                    collision->front = front;
-                    collision->N = normalize(collision->C - primitive->data.sphere.O);
-                    if (collision->front == false) collision->N = -collision->N;
-                    collision->isCollide = true;
-                    collision->collide_primitive = primitive;
-                }
+                if (x2 < 1e-6) return false;
+                collision->front = (x1 > 1e-6);
+                collision->dist = collision->front ? x1 : x2;
+                collision->C = origin + direction * collision->dist;
+                collision->N = normalize(collision->C - primitive->data.sphere.O);
+                if (collision->front == false) collision->N = -collision->N;
+                collision->isCollide = true;
+                collision->collide_primitive = primitive;
             }
             break;
         }
@@ -38,7 +34,7 @@ __device__ bool intersect(Cuda_Primitive* primitive, double3 origin, double3 dir
             if (fabs(denom) >= 1e-6)
             {
                 float t = dot(N * primitive->data.plane.R - origin, N) / denom;
-                if (t >= 1e-6 && t < collision->dist)
+                if (t >= 1e-6)
                 {
                     collision->dist = t;
                     collision->C = origin + direction * collision->dist;
