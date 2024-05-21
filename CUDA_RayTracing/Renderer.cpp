@@ -202,7 +202,9 @@ void Renderer::Render()
 {
     Raytracer raytracer;
     raytracer.SetInput("./scene1.txt");
+    raytracer.SetOutput("./test.bmp");
     raytracer.CreateAll();
+    //raytracer.MultiThreadRun();
 
     double lastTime = glfwGetTime();
     long long int frameCount = 0;

@@ -129,7 +129,7 @@ CollidePrimitive Sphere::Collide( Vector3 ray_O , Vector3 ray_V ) {
         return ret;
     }
 
-    ret.C = ray_O + ray_V * ret.dist;
+    ret.C = ray_O + ray_V * ret.dist;   
     ret.N = ( ret.C - O ).GetUnitVector();
     if ( ret.front == false ) ret.N = -ret.N;
     ret.isCollide = true;

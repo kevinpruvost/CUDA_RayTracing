@@ -5,7 +5,7 @@
 
 class Color {
 public:
-    float r , g , b;
+    double r , g , b;
 
     explicit Color( double R = 0 , double G = 0 , double B = 0 ) : r( R ) , g( G ) , b( B ) {}
     ~Color() {}

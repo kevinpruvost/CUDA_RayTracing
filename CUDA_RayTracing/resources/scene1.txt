@@ -7,8 +7,8 @@ camera
     N= 0.6 1 -0.6
     shade_quality= 1
     drefl_quality= 1
-    image_H= 760
-    image_W= 1280
+    image_H= 900
+    image_W= 1600
     lens_H= 0.6
     lens_W= 1.0
 end
@@ -47,7 +47,7 @@ primitive sphere
     O= 0 6 -1.5
     R= 0.5
     color= 1 1 1
-    texture= estuary.bmp
+    texture= marble.bmp
     De= 0 0 1
     Dc= 0 1 0
     diff= 0.45

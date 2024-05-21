@@ -10,53 +10,49 @@ __device__ Cuda_Collision InitCudaCollision()
     return collision;
 }
 
-__device__ float3 operator+(const float3& a, const float3& b) {
-    return make_float3(a.x + b.x, a.y + b.y, a.z + b.z);
-}
-
-__device__ float3& operator+=(float3& a, const float3& b) {
-    a.x += b.x;
-    a.y += b.y;
-    a.z += b.z;
-    return a;
-}
-
-__host__ __device__ float3 operator*(const float3& a, float b) {
-    return make_float3(a.x * b, a.y * b, a.z * b);
-}
-
-__device__ float3 operator*(float b, const float3& a) {
-    return make_float3(a.x * b, a.y * b, a.z * b);
-}
-
-__device__ uchar3 operator*(const uchar3& a, float b) {
-    return make_uchar3(a.x * b, a.y * b, a.z * b);
-}
-
-__device__ float3 operator+=(float3& a, const uchar3& b) {
-    a.x += b.x;
-    a.y += b.y;
-    a.z += b.z;
-    return a;
-}
-
-__device__ float3 operator/=(const float3& a, float b) {
-    return make_float3(a.x / b, a.y / b, a.z / b);
-}
-
-__device__ float3 GetMaterialSmoothPixel(Cuda_Material* material, float u, float v)
+__device__ double3 GetTextureColor(Cuda_Collision* collision)
 {
-    const float EPS = 1e-6;
+    double3 color;
+    switch (collision->collide_primitive->type)
+    {
+        case Cuda_Primitive_Type_Sphere:
+        {
+            Cuda_Sphere* sphere = &collision->collide_primitive->data.sphere;
+
+            double3 I = normalize(collision->C - sphere->O);
+            double a = acos(-dot(I, sphere->De));
+            double b = acos(fmin(fmax(dot(I, sphere->Dc) / sin(a), -1.0), 1.0));
+            double u = a / M_PI, v = b / (2 * M_PI);
+            if (dot(I, cross(sphere->Dc, sphere->De)) < 0) v = 1 - v;
+            color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
+            break;
+        }
+        case Cuda_Primitive_Type_Plane:
+        {
+            Cuda_Plane* plane = &collision->collide_primitive->data.plane;
+
+            double u = dot(collision->C, plane->Dx) / dot(plane->Dx, plane->Dx);
+            double v = dot(collision->C, plane->Dy) / dot(plane->Dy, plane->Dy);
+            color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
+            break;
+        }
+    }
+    return color;
+}
+
+__device__ double3 GetMaterialSmoothPixel(Cuda_Material* material, double u, double v)
+{
+    const double EPS = 1e-6;
 
     // Calculate the positions in the texture
-    float U = (u - floorf(u)) * material->texture_height;
-    float V = (v - floorf(v)) * material->texture_width;
+    double U = (u - floorf(u)) * material->texture_height;
+    double V = (v - floorf(v)) * material->texture_width;
     int U1 = static_cast<int>(floorf(U - EPS));
     int U2 = U1 + 1;
     int V1 = static_cast<int>(floorf(V - EPS));
     int V2 = V1 + 1;
-    float rat_U = U2 - U;
-    float rat_V = V2 - V;
+    double rat_U = U2 - U;
+    double rat_V = V2 - V;
 
     // Handle wrapping
     if (U1 < 0) U1 = material->texture_height - 1;
@@ -65,7 +61,7 @@ __device__ float3 GetMaterialSmoothPixel(Cuda_Material* material, float u, float
     if (V2 == material->texture_width) V2 = 0;
 
     // Perform bilinear interpolation
-    float3 color = make_float3(0, 0, 0);
+    double3 color = make_double3(0, 0, 0);
 
     color += material->texture[U1 * material->texture_height + V1] * rat_U * rat_V;
     color += material->texture[U1 * material->texture_height + V2] * rat_U * (1 - rat_V);
@@ -74,9 +70,4 @@ __device__ float3 GetMaterialSmoothPixel(Cuda_Material* material, float u, float
     color /= 256.0f;
 
     return color;
-}
-
-__device__ bool intersect(Cuda_Primitive* primitive, float3 origin, float3 direction, Cuda_Collision* collision)
-{
-    return false;
 }

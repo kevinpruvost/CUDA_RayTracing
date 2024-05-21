@@ -15,13 +15,16 @@ enum Cuda_Light_Type
 struct Cuda_Light
 {
     int sample;
-    float3 color;
-    float3 O;
-    float3 Dx;
-    float3 Dy;
+    double3 color;
+    double3 O;
+    double3 Dx;
+    double3 Dy;
     double R;
     Cuda_Light_Type type;
     Cuda_Primitive* lightPrimitive;
 };
+
+__device__ double3 GetRandPointLight(double3 C, Cuda_Light* light);
+__device__ double CalnShade(double3 C, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality);
 
 #endif

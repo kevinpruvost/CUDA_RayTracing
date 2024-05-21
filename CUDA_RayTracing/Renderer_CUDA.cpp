@@ -4,6 +4,11 @@
 #include "raytracer.h"
 #include <memory>
 
+#ifndef _DEBUG
+#undef assert
+#define assert(x) if (!(x)) { printf("Assertion failed: %s\n", #x); exit(1); }
+#endif
+
 #define MALLOC(ptr, size) assert(cudaMalloc(ptr, size) == cudaSuccess)
 #define FREE(ptr) assert(cudaFree(ptr) == cudaSuccess)
 #define MEMCPY(dst, src, size, kind) assert(cudaMemcpy(dst, src, size, kind) == cudaSuccess)
@@ -34,7 +39,7 @@ Cuda_Light * createCudaLightsFromCPULights(Light* lights, int * lightCount)
     for (Light* currentLight = lights; currentLight != nullptr; currentLight = currentLight->GetNext())
         ++(*lightCount);
 
-    Cuda_Light* cudaLights;
+    Cuda_Light* cudaLights = nullptr;
     MALLOC(&cudaLights, (*lightCount) * sizeof(Cuda_Light));
 
     Light* currentLight = lights;
@@ -77,7 +82,7 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
     for (Primitive* currentPrimitive = primitives; currentPrimitive != nullptr; currentPrimitive = currentPrimitive->GetNext())
         ++(*primCount);
 
-    Cuda_Primitive* cudaPrimitives;
+    Cuda_Primitive* cudaPrimitives = nullptr;
     MALLOC(&cudaPrimitives, (*primCount) * sizeof(Cuda_Primitive));
 
     Primitive * currentPrimitive = primitives;
@@ -138,6 +143,8 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
             Sphere * sphere = dynamic_cast<Sphere*>(currentPrimitive);
             MEMCPY(&cudaPrimitives[i].data.sphere.O, &sphere->O, sizeof(Vector3), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.sphere.R, &sphere->R, sizeof(double), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.sphere.De, &sphere->De, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.sphere.Dc, &sphere->Dc, sizeof(Vector3), cudaMemcpyHostToDevice);
             type = Cuda_Primitive_Type_Sphere;
         }
         else if (dynamic_cast<Plane*>(currentPrimitive) != nullptr)
@@ -191,7 +198,7 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
 
 Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int height)
 {
-    Cuda_Scene * scene;
+    Cuda_Scene * scene = nullptr;
     MALLOC(&scene, sizeof(Cuda_Scene));
 
     // Background color

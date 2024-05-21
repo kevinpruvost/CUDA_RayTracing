@@ -8,8 +8,8 @@
 
 struct Cuda_Scene
 {
-    float3 backgroundColor_top;
-    float3 backgroundColor_bottom;
+    double3 backgroundColor_top;
+    double3 backgroundColor_bottom;
     Cuda_Camera camera;
     Cuda_Light* lights;
     int lightCount;
@@ -17,6 +17,6 @@ struct Cuda_Scene
     int primitiveCount;
 };
 
-__device__ float3 traceRay(Cuda_Scene * scene, double u, double v);
+__device__ double3 traceRay(Cuda_Scene * scene, double u, double v, int x, int y, int depth);
 
 #endif // !SCENE_CUH

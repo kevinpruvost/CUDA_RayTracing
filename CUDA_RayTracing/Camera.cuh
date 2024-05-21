@@ -8,10 +8,10 @@
 
 struct Cuda_Camera
 {
-    float3 O; // Position
-    float3 N; // Normal
-    float3 Dx; // Delta X, width camera
-    float3 Dy; // Delta Y, height camera
+    double3 O; // Position
+    double3 N; // Normal
+    double3 Dx; // Delta X, width camera
+    double3 Dy; // Delta Y, height camera
     int W, H;
     double shade_quality;
     double drefl_quality;

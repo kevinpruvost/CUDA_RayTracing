@@ -8,7 +8,7 @@ extern const double PI;
 
 class Vector3 {
 public:
-    float x , y , z;
+    double x , y , z;
 
     Vector3() : x(0), y(0), z(0) {}
     explicit Vector3( double X , double Y , double Z ) : x( X ) , y( Y ) , z( Z ) {}
@@ -43,7 +43,7 @@ public:
     Vector3 Diffuse() const;
     Vector3 Rotate( Vector3 axis , double theta ) const;
 
-    float & GetCoord(int axis);
+    double & GetCoord(int axis);
 
     void Input(std::stringstream& fin);
     void AssRandomVector();

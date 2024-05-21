@@ -2,10 +2,11 @@
 #define PRIMITIVE_CUH
 
 #include <cuda_runtime.h>
+#include <helper_math.h>
 
 struct Cuda_Material
 {
-    float3 color, absor;
+    double3 color, absor;
     double refl, refr;
     double diff, spec;
     double rindex;
@@ -14,12 +15,7 @@ struct Cuda_Material
     int texture_width, texture_height;
 };
 
-__device__ float3 operator+(const float3& a, const float3& b);
-__device__ float3& operator+=(float3& a, const float3& b);
-__device__ float3 operator*(const float3& a, float b);
-__device__ float3 operator*(float b, const float3& a);
-
-__device__ float3 GetMaterialSmoothPixel(Cuda_Material* material, float u, float v);
+__device__ double3 GetMaterialSmoothPixel(Cuda_Material* material, double u, double v);
 
 enum Cuda_Primitive_Type
 {
@@ -33,38 +29,39 @@ enum Cuda_Primitive_Type
 
 // Struct for Sphere
 struct Cuda_Sphere {
-    float3 O;  // Center of the sphere
+    double3 O;  // Center of the sphere
     double R;   // Radius of the sphere
+    double3 De, Dc;
 };
 
 // Struct for Plane
 struct Cuda_Plane {
-    float3 N;  // Normal of the plane
+    double3 N;  // Normal of the plane
     double R;   // Distance from origin
-    float3 Dx, Dy;
+    double3 Dx, Dy;
 };
 
 // Struct for Square
 struct Cuda_Square {
-    float3 O;   // Origin of the square
-    float3 Dx;  // Direction vector along one side
-    float3 Dy;  // Direction vector along the other side
+    double3 O;   // Origin of the square
+    double3 Dx;  // Direction vector along one side
+    double3 Dy;  // Direction vector along the other side
 };
 
 // Struct for Cylinder
 struct Cuda_Cylinder {
-    float3 O1;  // One end of the cylinder
-    float3 O2;  // Other end of the cylinder
+    double3 O1;  // One end of the cylinder
+    double3 O2;  // Other end of the cylinder
     double R;    // Radius of the cylinder
 };
 
 // Struct for Bezier
 struct Cuda_Bezier {
-    float3 O1;  // Start point
-    float3 O2;  // End point
-    float3 N;   // Normal
-    float3 Nx;  // Tangent vector
-    float3 Ny;  // Binormal vector
+    double3 O1;  // Start point
+    double3 O2;  // End point
+    double3 N;   // Normal
+    double3 Nx;  // Tangent vector
+    double3 Ny;  // Binormal vector
     int degree;  // Degree of the Bezier curve
     // Here we assume R and Z arrays have a fixed maximum size for simplicity
     double R[10];  // Radii for control points (assuming a maximum degree)
@@ -93,12 +90,13 @@ struct Cuda_Primitive {
 struct Cuda_Collision {
     bool isCollide;
     Cuda_Primitive* collide_primitive;
-    float3 N, C;
+    double3 N, C;
     double dist;
     bool front;
 };
 __device__ Cuda_Collision InitCudaCollision();
+__device__ double3 GetTextureColor(Cuda_Collision * collision);
 
-__device__ bool intersect(Cuda_Primitive * primitive, float3 origin, float3 direction, Cuda_Collision* collision);
+__device__ bool intersect(Cuda_Primitive * primitive, double3 origin, double3 direction, Cuda_Collision* collision);
 
 #endif

@@ -107,7 +107,7 @@ Vector3 Vector3::Ortho( Vector3 term ) const
     return *this - term * this->Dot(term);
 }
 
-float & Vector3::GetCoord( int axis ) {
+double & Vector3::GetCoord( int axis ) {
     if (axis == 0) {
         return x;
     } else if (axis == 1) {

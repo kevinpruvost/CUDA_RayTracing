@@ -115,7 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\cuda_common\;$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +129,7 @@
     <CudaCompile />
     <CudaCompile>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <Include>$(SolutionDir)..\lib\cuda_common\;%(Include)</Include>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\lib\cuda_common\;$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,6 +156,8 @@
     <CudaCompile />
     <CudaCompile>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <Include>$(SolutionDir)..\lib\cuda_common\;%(Include)</Include>
+      <GPUDebugInfo>true</GPUDebugInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -196,9 +199,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="Collision.cu" />
     <CudaCompile Include="Primitive.cu" />
     <CudaCompile Include="RayTracer.cu" />
     <CudaCompile Include="Scene.cu" />
+    <CudaCompile Include="Shade.cu" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\blackwhite.bmp">
@@ -227,6 +232,9 @@
     <Text Include="resources\scene2.txt">
       <DeploymentContent>true</DeploymentContent>
     </Text>
+    <Text Include="resources\scene3.txt" />
+    <Text Include="resources\scene4.txt" />
+    <Text Include="resources\scene5.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

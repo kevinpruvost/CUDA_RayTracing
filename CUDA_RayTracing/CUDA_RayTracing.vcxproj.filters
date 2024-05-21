@@ -80,6 +80,12 @@
     <CudaCompile Include="Primitive.cu">
       <Filter>Scene_GPU</Filter>
     </CudaCompile>
+    <CudaCompile Include="Collision.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Shade.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resources">
@@ -117,6 +123,15 @@
       <Filter>Resources</Filter>
     </Text>
     <Text Include="resources\scene2.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene5.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene3.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene4.txt">
       <Filter>Resources</Filter>
     </Text>
   </ItemGroup>
