@@ -11,7 +11,7 @@ __device__ Cuda_Collision intersect(Cuda_Scene* scene, const double3 * origin, c
         Cuda_Collision temp_collision = empty;
         if (intersect(primitive, origin, direction, &temp_collision))
         {
-            if (temp_collision.dist < collision.dist)
+            if (temp_collision.dist - collision.dist < 1e-6)
             {
                 collision = temp_collision;
             }

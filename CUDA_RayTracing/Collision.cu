@@ -18,7 +18,7 @@ __device__ bool intersect(Cuda_Primitive* primitive, const double3 * origin, con
                 if (x2 < 1e-6) return false;
                 collision->front = (x1 > 1e-6);
                 collision->dist = collision->front ? x1 : x2;
-                collision->C = *origin + (*direction * collision->dist);
+                collision->C = *origin + (V * collision->dist);
                 collision->N = normalize(collision->C - primitive->data.sphere.O);
                 if (collision->front == false) collision->N = -collision->N;
                 collision->isCollide = true;
