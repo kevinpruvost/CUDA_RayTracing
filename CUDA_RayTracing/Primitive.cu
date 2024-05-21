@@ -24,7 +24,7 @@ __device__ double3 GetTextureColor(Cuda_Collision* collision)
 
             double3 I = normalize(collision->C - sphere->O);
             double a = acos(-dot(I, sphere->De));
-            double b = acos(fmin(fmax(dot(I, sphere->Dc) / sin(a), -1.0), 1.0));
+            double b = acos(fmin(fmax(dot(I, sphere->Dc) / sinf(a), -1.0), 1.0));
             double u = a / M_PI, v = b / (2 * M_PI);
             if (dot(I, cross(sphere->Dc, sphere->De)) < 0) v = 1 - v;
             color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
@@ -66,10 +66,10 @@ __device__ double3 GetMaterialSmoothPixel(Cuda_Material* material, double u, dou
     // Perform bilinear interpolation
     double3 color = make_double3(0, 0, 0);
 
-    color += material->texture[U1 * material->texture_height + V1] * rat_U * rat_V;
-    color += material->texture[U1 * material->texture_height + V2] * rat_U * (1 - rat_V);
-    color += material->texture[U2 * material->texture_height + V1] * (1 - rat_U) * rat_V;
-    color += material->texture[U2 * material->texture_height + V2] * (1 - rat_U) * (1 - rat_V);
+    color += material->texture[V1 * material->texture_height + U1] * rat_U * rat_V;
+    color += material->texture[V1 * material->texture_height + U2] * rat_U * (1 - rat_V);
+    color += material->texture[V2 * material->texture_height + U1] * (1 - rat_U) * rat_V;
+    color += material->texture[V2 * material->texture_height + U2] * (1 - rat_U) * (1 - rat_V);
     color /= 256.0f;
 
     return color;
