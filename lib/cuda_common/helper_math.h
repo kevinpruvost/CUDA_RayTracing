@@ -83,8 +83,8 @@ inline int min(int a, int b)
 
 // Random
 
-#define N_BLOCK 256
 #define BLOCK_SIZE 16
+#define N_BLOCK BLOCK_SIZE * BLOCK_SIZE
 
 __global__ void initCurand(unsigned long seed);
 

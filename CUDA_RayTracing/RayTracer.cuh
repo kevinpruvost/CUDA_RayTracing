@@ -4,6 +4,8 @@
 #include <cuda_runtime.h>
 #include "Scene.cuh"
 
+#define RESAMPLING_SIZE 2 // N for NxN super sampling
+
 // Declare the CUDA kernel
 __global__ void rayTraceKernel(uchar4* output, int width, int height);
 // Declare the wrapper function

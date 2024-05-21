@@ -112,7 +112,7 @@ __device__ Cuda_Collision intersect(Cuda_Scene* scene, double3 origin, double3 d
 }
 
 __device__ const int max_depth = 5;
-__device__ double3 traceRay(Cuda_Scene* scene, double u, double v, int x, int y, int depth)
+__device__ double3 traceRay(Cuda_Scene* scene, double x, double y, int depth)
 {
     double3 color = make_double3(0.0f, 0.0f, 0.0f);
 
@@ -142,7 +142,7 @@ __device__ double3 traceRay(Cuda_Scene* scene, double u, double v, int x, int y,
     }
     else
     {
-        color = (v < 0.5) ? scene->backgroundColor_top : scene->backgroundColor_bottom;
+        color = (y < c->H / 2) ? scene->backgroundColor_top : scene->backgroundColor_bottom;
     }
     color.x = fmin(1.0, color.x);
     color.y = fmin(1.0, color.y);

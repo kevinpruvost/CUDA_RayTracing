@@ -130,6 +130,7 @@
     <CudaCompile>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <Include>$(SolutionDir)..\lib\cuda_common\;%(Include)</Include>
+      <CodeGeneration>compute_86,sm_86</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,7 +158,13 @@
     <CudaCompile>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <Include>$(SolutionDir)..\lib\cuda_common\;%(Include)</Include>
-      <GPUDebugInfo>true</GPUDebugInfo>
+      <AdditionalOptions>
+ %(AdditionalOptions)</AdditionalOptions>
+      <FastMath>true</FastMath>
+      <Optimization>O3</Optimization>
+      <TypeInfo>false</TypeInfo>
+      <Warning>W0</Warning>
+      <CodeGeneration>compute_86,sm_86</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

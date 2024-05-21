@@ -15,8 +15,9 @@ struct Cuda_Scene
     int lightCount;
     Cuda_Primitive * primitives;
     int primitiveCount;
+    double3 * resampling_surface;
 };
 
-__device__ double3 traceRay(Cuda_Scene * scene, double u, double v, int x, int y, int depth);
+__device__ double3 traceRay(Cuda_Scene * scene, double x, double y, int depth);
 
 #endif // !SCENE_CUH

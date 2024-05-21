@@ -219,6 +219,7 @@ Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int hei
     Cuda_Primitive * primitives = createCudaPrimitivesFromCPUPrimitives(sceneCpu->scene.primitive_head, &primitiveCount);
     MEMCPY(&(scene->primitives), &primitives, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
     MEMCPY(&(scene->primitiveCount), &primitiveCount, sizeof(int), cudaMemcpyHostToDevice);
+
     return scene;
 }
 
