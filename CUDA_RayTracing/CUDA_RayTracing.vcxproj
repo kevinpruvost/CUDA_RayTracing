@@ -116,6 +116,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\lib\cuda_common\;$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,6 +143,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\lib\cuda_common\;$(ProjectDir)..\lib\imgui\;$(ProjectDir)..\lib\imgui\backends\;$(ProjectDir)..\lib\glfw\include\;$(ProjectDir)..\lib\glad\include\;$(ProjectDir)..\lib\glm\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

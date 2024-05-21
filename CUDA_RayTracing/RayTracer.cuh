@@ -4,12 +4,12 @@
 #include <cuda_runtime.h>
 #include "Scene.cuh"
 
-#define RESAMPLING_SIZE 4 // N for NxN super sampling
+#define RESAMPLING_SIZE 8 // N for NxN super sampling
 
 // Declare the CUDA kernel
 __global__ void rayTraceKernel(uchar4* output, int width, int height);
 // Declare the wrapper function
-void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene * scene);
+void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int resampling_size, int x_progress, int y_progress);
 
 // Utility functions (if needed, you can also declare them here)
 //__device__ float3 make_float3(float x, float y, float z);

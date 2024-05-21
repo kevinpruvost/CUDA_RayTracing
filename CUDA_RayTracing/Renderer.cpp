@@ -4,9 +4,10 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <iostream>
+#include <filesystem>
 #include "raytracer.h"
 
-Renderer::Renderer(int width, int height)
+Renderer::Renderer(int width, int height, const std::string& scene)
     : width(width)
     , height(height)
     , window(nullptr)
@@ -17,7 +18,16 @@ Renderer::Renderer(int width, int height)
     , ebo(0)
     , frameIndex(0)
     , maxFrames(100)
+    , scenePath{scene}
+    , resampling_size{ 1 }
+    , firstImage{true}
+    , segmentation{ 10 }
+    , x_progress{ 0 }
+    , y_progress{ 0 }
+    , m_sceneContainer(nullptr)
+    , m_surfaceContainer(nullptr)
 {
+    LoadScene(scenePath);
     frameTimes.resize(maxFrames, 0.0f);
     InitOpenGL();
     InitCUDA();
@@ -25,6 +35,15 @@ Renderer::Renderer(int width, int height)
     RegisterCUDAResources();
     SetupQuad();
     SetupImGui();
+}
+
+void Renderer::LoadScene(const std::string& scene)
+{
+    raytracer = Raytracer();
+    raytracer.SetInput(scene);
+    raytracer.CreateAll();
+    scenePath = scene;
+    ResetRendering();
 }
 
 Renderer::~Renderer()
@@ -198,14 +217,66 @@ static GLuint createShaderProgram(const char* vert, const char* frag)
     return shaderProgram;
 }
 
+void Renderer::GUI()
+{
+    // Display FPS
+    ImGui::Begin("Details");
+    ImGui::Text("Framerate: %.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("1 Frame each %.5f seconds", ImGui::GetIO().DeltaTime);
+    ImGui::PlotLines("FPS", frameTimes.data(), maxFrames, frameIndex, nullptr, 0.0f, 100.0f, ImVec2(0, 80));
+
+    // Define the available resampling sizes
+    static const char* resamplingOptions[] = { "1", "2", "4", "8", "16"};
+    static int currentResamplingIdx = 0; // Index of the current resampling size
+
+    // Display combo box to select resampling size
+    if (ImGui::Combo("Resampling Size", &currentResamplingIdx, resamplingOptions, IM_ARRAYSIZE(resamplingOptions))) {
+        // Update resampling_size based on the selected option
+        resampling_size = std::stoi(resamplingOptions[currentResamplingIdx]);
+    }
+
+    // Display combo box to load other scenes
+    std::vector<std::string> scenesStr;
+    // Load strings from resources path
+    int currentSceneIdx = 0;
+    std::string folderPath = "./"; // Replace with your folder path
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
+        if (entry.path().extension() == ".txt") {
+            std::string scene = entry.path().filename().string();
+            scenesStr.push_back(scene);
+            if (scene == scenePath) {
+                currentSceneIdx = scenesStr.size() - 1;
+            }
+        }
+    }
+    if (ImGui::BeginCombo("Scenes", scenesStr[currentSceneIdx].c_str())) {
+        for (int i = 0; i < scenesStr.size(); i++) {
+            bool is_selected = (currentSceneIdx == i);
+            if (ImGui::Selectable(scenesStr[i].c_str(), is_selected)) {
+                currentSceneIdx = i;
+                LoadScene(scenesStr[currentSceneIdx]);
+            }
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+
+    ImGui::End();
+}
+
+void Renderer::ResetRendering()
+{
+    firstImage = true;
+    x_progress = 0;
+    y_progress = 0;
+    m_sceneContainer.reset(nullptr);
+    m_surfaceContainer.reset(nullptr);
+}
+
 void Renderer::Render()
 {
-    Raytracer raytracer;
-    raytracer.SetInput("./scene5.txt");
-    raytracer.SetOutput("./test.bmp");
-    raytracer.CreateAll();
-    //raytracer.MultiThreadRun();
-
     double lastTime = glfwGetTime();
     long long int frameCount = 0;
     GLuint shaderProgram = createShaderProgram(shaderVert, shaderFrag);
@@ -255,11 +326,7 @@ void Renderer::Render()
 
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        // Display FPS
-        ImGui::Begin("Performance");
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::PlotLines("FPS", frameTimes.data(), maxFrames, frameIndex, nullptr, 0.0f, 100.0f, ImVec2(0, 80));
-        ImGui::End();
+        GUI();
 
         // Render ImGui
         ImGui::Render();
