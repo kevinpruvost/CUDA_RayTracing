@@ -12,41 +12,39 @@ __device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* orig
         double md = dot(m, d);
         double nd = dot(n, d);
         double dd = dot(d, d);
-        double nn = dot(n, n);
-        double mn = dot(m, n);
-        double a = dd - md * md / dd;
-        double b = dd - nd * nd / dd;
-        double c = dd - mn * mn / dd;
-        double e = dd - nn * nn / dd;
-        double f = dd - md * nd / dd;
         double r2 = primitive->data.cylinder.R * primitive->data.cylinder.R;
 
-        // Test for collision with infinite cylinder
-        double a1 = dot(V, V) - pow(dot(V, d), 2) / dd;
-        double b1 = dot(m, V) - md * dot(V, d) / dd;
-        double c1 = dot(m, m) - pow(md, 2) / dd - r2;
-        double det = b1 * b1 - a1 * c1;
+        // Cylinder body collision detection
+        double3 dNorm = normalize(d);
+        //double3 mProj = m - dot(m, dNorm) * dNorm;
+        //double3 VProj = V - dot(V, dNorm) * dNorm;
+        double3 mProj = cross(m, dNorm);
+        double3 VProj = cross(V, dNorm);
+        double a = dot(VProj, VProj);
+        double b = 2.0 * dot(VProj, mProj);
+        double c = dot(mProj, mProj) - r2;
+        double det = b * b - 4 * a * c;
+
         if (det >= 0)
         {
             det = sqrt(det);
-            double t0 = (-b1 - det) / a1;
-            double t1 = (-b1 + det) / a1;
+            double t0 = (-b - det) / (2.0 * a);
+            double t1 = (-b + det) / (2.0 * a);
 
-            // Check for collision within cylinder caps
-            if (t1 >= 1e-6)
+            double t = fmin(t0, t1);
+            if (t < 0) t = fmax(t0, t1);
+            if (t >= 0)
             {
-                if (t0 < 1e-6) t0 = t1;
+                double3 P = *origin + V * t;
+                //double3 Q = P - primitive->data.cylinder.O1;
+                double u = dot(P - primitive->data.cylinder.O1, dNorm);
 
-                double3 P = *origin + V * t0;
-                double3 Q = (P - primitive->data.cylinder.O1);
-                double u = dot(Q, d) / dd;
-                if (!(u < 0 || u > 1))
+                if (u >= 0 && u <= length(d))
                 {
-                    collision->dist = t0;
-                    collision->front = (dot(V, d) < 0);
+                    collision->dist = t;
+                    collision->front = t >= 0;
                     collision->C = P;
-                    collision->N = normalize(P - (primitive->data.cylinder.O1 + u * d));
-                    if (!collision->front) collision->N = -collision->N;
+                    collision->N = normalize(P - (primitive->data.cylinder.O1 + dNorm * u));
                     collision->isCollide = true;
                     collision->collide_primitive = primitive;
                     return;
