@@ -63,7 +63,7 @@ struct Cuda_Bezier {
     double3 Nx;  // Tangent vector
     double3 Ny;  // Binormal vector
     int degree;  // Degree of the Bezier curve
-    // Here we assume R and Z arrays have a fixed maximum size for simplicity
+    // Here we assume R and Z arrays have a fixed maximum size for simplicity and only that have only R[degree] and Z[degree] data
     double R[10];  // Radii for control points (assuming a maximum degree)
     double Z[10];  // Z coordinates for control points
 };

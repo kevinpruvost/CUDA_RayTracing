@@ -78,3 +78,13 @@ primitive plane
     Dx= 8 0 0
     Dy= 0 8 0
 end
+
+primitive cylinder
+    O1= 1 5 -1.5
+    O2= 1 6 -1.5
+    R= 0.3
+    color= 0.7 1 0.2
+    diff= 0.8
+    refl= 0.1
+    spec= 0.1
+end

@@ -171,8 +171,8 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
             MEMCPY(&cudaPrimitives[i].data.bezier.O1, &bezier->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.bezier.O2, &bezier->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.bezier.degree, &bezier->degree, sizeof(int), cudaMemcpyHostToDevice);
-            MEMCPY(&cudaPrimitives[i].data.bezier.R, bezier->R.data(), bezier->R.size() * sizeof(double), cudaMemcpyHostToDevice);
-            MEMCPY(&cudaPrimitives[i].data.bezier.Z, bezier->Z.data(), bezier->Z.size() * sizeof(double), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.R, bezier->R.data(), bezier->degree * sizeof(double), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.Z, bezier->Z.data(), bezier->degree * sizeof(double), cudaMemcpyHostToDevice);
 
             type = Cuda_Primitive_Type_Bezier;
         }

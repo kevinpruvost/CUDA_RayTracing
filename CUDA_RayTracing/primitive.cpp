@@ -234,7 +234,6 @@ Color Square::GetTexture(Vector3 crash_C) {
 
 // -----------------------------------------------
 // TODO: NEED TO IMPLEMENT. Follow the code given below or totally re-write it
-/*
 void Cylinder::Input( std::string var , std::stringstream& fin ) {
     if ( var == "O1=" ) O1.Input( fin );
     if ( var == "O2=" ) O2.Input( fin );
@@ -246,12 +245,14 @@ CollidePrimitive Cylinder::Collide( Vector3 ray_O , Vector3 ray_V ) {
     CollidePrimitive ret;
 
     // TODO: NEED TO IMPLEMENT
+    return ret;
 }
 
 Color Cylinder::GetTexture(Vector3 crash_C) {
     double u = 0.5 ,v = 0.5;
 
     // TODO: NEED TO IMPLEMENT
+    return Color();
 }
 
 // -----------------------------------------------
@@ -266,18 +267,6 @@ void Bezier::Input( std::string var , std::stringstream& fin ) {
         R.push_back(newR);
         Z.push_back(newZ);
     }
-    if ( var == "Cylinder" ) {
-        double maxR = 0;
-        for (int i = 0; i < R.size(); i++) {
-            if (R[i] > maxR) {
-                maxR = R[i];
-            }
-        }
-        boundingCylinder = new Cylinder(O1, O2, maxR);
-        N = (O1 - O2).GetUnitVector();
-        Nx = N.GetAnVerticalVector();
-        Ny = N * Nx;
-    }
     Primitive::Input( var , fin );
 }
 
@@ -285,13 +274,14 @@ CollidePrimitive Bezier::Collide( Vector3 ray_O , Vector3 ray_V ) {
     CollidePrimitive ret;
 
     // TODO: NEED TO IMPLEMENT
-
+    return ret;
 }
 
 Color Bezier::GetTexture(Vector3 crash_C) {
     double u = 0.5 ,v = 0.5;
 
     // TODO: NEED TO IMPLEMENT
+    return Color();
 }
 
 std::pair<double, double> Bezier::valueAt(double u)
@@ -312,4 +302,3 @@ std::pair<double, double> Bezier::valueAt(double u, const std::vector<double>& x
     }
     return std::make_pair(x, y);
 }
-*/

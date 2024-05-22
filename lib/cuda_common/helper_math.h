@@ -1450,6 +1450,26 @@ inline __device__ __host__ float4 lerp(float4 a, float4 b, float t)
     return a + t*(b-a);
 }
 
+inline __device__ __host__ double lerp(double a, double b, double t)
+{
+    return a + t*(b-a);
+}
+
+inline __device__ __host__ double2 lerp(double2 a, double2 b, double t)
+{
+    return a + t*(b-a);
+}
+
+inline __device__ __host__ double3 lerp(double3 a, double3 b, double t)
+{
+    return a + t*(b-a);
+}
+
+inline __device__ __host__ double4 lerp(double4 a, double4 b, double t)
+{
+    return a + t*(b-a);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // clamp
 // - clamp the value v to be in the range [a, b]

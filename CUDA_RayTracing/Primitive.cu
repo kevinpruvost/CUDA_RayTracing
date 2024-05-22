@@ -39,6 +39,39 @@ __device__ double3 GetTextureColor(Cuda_Collision* collision)
             color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
             break;
         }
+        case Cuda_Primitive_Type_Square:
+        {
+            Cuda_Square* square = &collision->collide_primitive->data.square;
+
+            double u = dot(collision->C, square->Dx) / dot(square->Dx, square->Dx) / 2.0 + 0.5;
+            double v = dot(collision->C, square->Dy) / dot(square->Dy, square->Dy) / 2.0 + 0.5;
+            color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
+            break;        
+        }
+        case Cuda_Primitive_Type_Cylinder:
+        {
+            Cuda_Cylinder* cylinder = &collision->collide_primitive->data.cylinder;
+
+            //double3 P = collision->C - cylinder->O1;
+            //double3 V = cylinder->O2 - cylinder->O1;
+            //double t = dot(P, V) / dot(V, V);
+            //double3 Q = cylinder->O1 + V * fmin(fmax(t, 0.0), 1.0);
+            //double3 N = normalize(collision->C - Q);
+            //double u = 0.5 + atan2(N.z, N.x) / (2 * M_PI);
+            //double v = 0.5 - asin(N.y) / M_PI;
+            //color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
+
+            double3 d = cylinder->O2 - cylinder->O1;
+            double3 m = collision->C - cylinder->O1;
+
+            double u = dot(m, d) / dot(d, d);
+            double3 cylinderAxis = cylinder->O2 - cylinder->O1;
+            double3 onCylinder = normalize(m - u * cylinderAxis);
+            double v = atan2(onCylinder.y, onCylinder.x) / (2.0 * M_PI) + 0.5;
+
+            color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
+            break;
+        }
     }
     return color;
 }

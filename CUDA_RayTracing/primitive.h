@@ -164,10 +164,9 @@ public:
     std::vector<double> R;
     std::vector<double> Z;
     int degree;
-    Cylinder* boundingCylinder;
 
 public:
-    Bezier() : Primitive() {boundingCylinder = NULL; degree = -1;}
+    Bezier() : Primitive() { degree = -1;}
     ~Bezier() {}
 
     void Input( std::string , std::stringstream& );
