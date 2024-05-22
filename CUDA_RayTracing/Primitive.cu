@@ -52,22 +52,28 @@ __device__ double3 GetTextureColor(Cuda_Collision* collision)
         {
             Cuda_Cylinder* cylinder = &collision->collide_primitive->data.cylinder;
 
-            //double3 P = collision->C - cylinder->O1;
-            //double3 V = cylinder->O2 - cylinder->O1;
-            //double t = dot(P, V) / dot(V, V);
-            //double3 Q = cylinder->O1 + V * fmin(fmax(t, 0.0), 1.0);
-            //double3 N = normalize(collision->C - Q);
-            //double u = 0.5 + atan2(N.z, N.x) / (2 * M_PI);
-            //double v = 0.5 - asin(N.y) / M_PI;
-            //color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
+            double u, v;
+            if (!collision->front)
+            {
+                // Body
+                double3 circle_point = collision->C - cylinder->O1;
+                double angle = atan2(circle_point.z, circle_point.x);
+                if (angle < 0) angle += 2 * M_PI;
 
-            double3 d = cylinder->O2 - cylinder->O1;
-            double3 m = collision->C - cylinder->O1;
+                u = angle / (2 * M_PI);
+                v = dot(collision->C - cylinder->O1, normalize(cylinder->O2 - cylinder->O1)) / length(cylinder->O2 - cylinder->O1);
+            }
+            else
+            {
+                // Caps
+                // Calculate position of Collision point on cap circle
+                double3 C = collision->C;
+                double3 cap_center = length(C - cylinder->O1) < length(C - cylinder->O2) ? cylinder->O1 : cylinder->O2;
+                double3 local_coords = C - cap_center;
 
-            double u = dot(m, d) / dot(d, d);
-            double3 cylinderAxis = cylinder->O2 - cylinder->O1;
-            double3 onCylinder = normalize(m - u * cylinderAxis);
-            double v = atan2(onCylinder.y, onCylinder.x) / (2.0 * M_PI) + 0.5;
+                u = (local_coords.x / (2.0 * cylinder->R) + 0.5);
+                v = (local_coords.z / (2.0 * cylinder->R) + 0.5);
+            }
 
             color = GetMaterialSmoothPixel(&collision->collide_primitive->material, u, v);
             break;

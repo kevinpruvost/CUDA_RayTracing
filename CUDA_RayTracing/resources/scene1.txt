@@ -80,10 +80,11 @@ primitive plane
 end
 
 primitive cylinder
-    O1= 1 5 -1.5
-    O2= 1 6 -1.5
+    O1= 1.6 5.5 -1.5
+    O2= 1.6 4.5 -1.5
     R= 0.3
-    color= 0.7 1 0.2
+    color= 1 1 1
+    texture= blue.bmp
     diff= 0.8
     refl= 0.1
     spec= 0.1
@@ -94,6 +95,7 @@ primitive cylinder
     O2= 2 8 3
     R= 0.5
     color= 0.5 0.5 0.5
+    texture= brown.bmp
     diff= 0.8
     refl= 0.1
     spec= 0.1

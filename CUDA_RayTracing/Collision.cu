@@ -41,13 +41,17 @@ __device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* orig
 
                 if (u >= 0 && u <= length(d))
                 {
+                    // Indicate body
                     collision->dist = t;
-                    collision->front = t >= 0;
                     collision->C = P;
-                    collision->N = normalize(P - (primitive->data.cylinder.O1 + dNorm * u));
                     collision->isCollide = true;
                     collision->collide_primitive = primitive;
+                    collision->front = false;
+                    collision->N = normalize(P - (primitive->data.cylinder.O1 + dNorm * u));
                     return;
+                }
+                else
+                {
                 }
             }
         }
@@ -67,8 +71,8 @@ __device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* orig
                 {
                     collision->dist = t;
                     collision->C = P;
-                    collision->front = (denom < 0);
-                    collision->N = collision->front ? -N : N;
+                    collision->front = true;
+                    collision->N = (denom < 0) ? N : -N;
                     collision->isCollide = true;
                     collision->collide_primitive = primitive;
                     return;
@@ -91,8 +95,8 @@ __device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* orig
                 {
                     collision->dist = t;
                     collision->C = P;
-                    collision->front = (denom < 0);
-                    collision->N = collision->front ? -N : N;
+                    collision->front = true;
+                    collision->N = (denom < 0) ? N : -N;
                     collision->isCollide = true;
                     collision->collide_primitive = primitive;
                     return;
