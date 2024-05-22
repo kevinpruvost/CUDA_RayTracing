@@ -28,6 +28,7 @@
       <Filter>Scene_From_Learning</Filter>
     </ClCompile>
     <ClCompile Include="Renderer_CUDA.cpp" />
+    <ClCompile Include="BmpSave.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
@@ -71,6 +72,7 @@
       <Filter>Scene_GPU</Filter>
     </ClInclude>
     <ClInclude Include="RayTracer.cuh" />
+    <ClInclude Include="BmpSave.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Scene.cu">

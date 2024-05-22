@@ -25,6 +25,8 @@ Renderer::Renderer(int width, int height, const std::string& scene)
     , y_progress{ 0 }
     , m_sceneContainer(nullptr)
     , m_surfaceContainer(nullptr)
+    , outputName{ "output.bmp" }
+    , generateOneImage{false}
 {
     LoadScene(scenePath);
     frameTimes.resize(maxFrames, 0.0f);
@@ -48,6 +50,7 @@ void Renderer::LoadScene(const std::string& scene)
     raytracer.SetInput(scene);
     raytracer.CreateAll();
     scenePath = scene;
+    m_sceneContainer.reset(nullptr);
     ResetRendering();
 }
 
@@ -126,6 +129,21 @@ void Renderer::UnregisterCUDAResources()
     if (cudaTextureResource) {
         cudaGraphicsUnregisterResource(cudaTextureResource);
     }
+}
+
+void Renderer::SaveTextureToBMP()
+{
+    std::vector<unsigned char> pixels(width * height * 3);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Reverse pixels
+    std::vector<unsigned char> pixelsReversed(width * height * 3);
+    for (int i = 0; i < pixels.size(); ++i) {
+        pixelsReversed[i] = pixels[pixels.size() - i - 1];
+    }
+    BmpSave::SaveBMP(outputName, pixels.data(), width, height);
 }
 
 void Renderer::SetupQuad()
@@ -248,6 +266,15 @@ void Renderer::GUI()
     }
 
     ImGui::Separator();
+    ImGui::Text("Save Image");
+    if (ImGui::Button("Save")) {
+        SaveTextureToBMP();
+    }
+    // Set output name
+    ImGui::InputText("Output Name", outputName.data(), outputName.size());
+    ImGui::Checkbox("Generate One Image", &generateOneImage);
+
+    ImGui::Separator();
     ImGui::Text("Select Scene:");
     if (ImGui::BeginCombo("##Select Scene:", scenesStr[currentSceneIdx].c_str())) {
         for (int i = 0; i < scenesStr.size(); i++) {
@@ -311,7 +338,6 @@ void Renderer::ResetRendering()
     firstImage = true;
     x_progress = 0;
     y_progress = 0;
-    m_sceneContainer.reset(nullptr);
     m_surfaceContainer.reset(nullptr);
 }
 

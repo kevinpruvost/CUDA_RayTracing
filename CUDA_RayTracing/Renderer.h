@@ -9,6 +9,7 @@
 #include "Raytracer.cuh"
 #include "Scene.cuh"
 #include <memory>
+#include "BmpSave.h"
 
 #define MALLOC(ptr, size) assert(cudaMalloc(ptr, size) == cudaSuccess)
 #define FREE(ptr) assert(cudaFree(ptr) == cudaSuccess)
@@ -70,6 +71,7 @@ private:
     void ResetSettings();
     void LoadScene(const std::string& scenePath);
     void GUI();
+    void SaveTextureToBMP();
 
     cudaArray* textureArray;
 
@@ -90,10 +92,13 @@ private:
 
     int segmentation;
     bool firstImage;
+    bool generateOneImage;
     int x_progress;
     int y_progress;
 
     Settings settings;
+
+    std::string outputName;
 
     std::unique_ptr<SceneContainer> m_sceneContainer;
     std::unique_ptr<SurfaceContainer> m_surfaceContainer;

@@ -171,6 +171,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bmp.cpp" />
+    <ClCompile Include="BmpSave.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -184,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bmp.h" />
+    <ClInclude Include="BmpSave.h" />
     <ClInclude Include="Camera.cuh" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />

@@ -283,10 +283,15 @@ void FreeCudaScene(Cuda_Scene* cudaScene)
 // Renderer function to launch the kernel and work with surfaces
 void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, Raytracer * cpuScene)
 {
-    if (m_surfaceContainer.get() == nullptr || m_sceneContainer.get() == nullptr)
+    if (m_sceneContainer.get() == nullptr)
     {
-        ResetSceneInfos();
         ResetSettings();
+        ResetSceneInfos();
+    }
+
+    if (m_surfaceContainer.get() == nullptr)
+    {
+        m_surfaceContainer.reset(new SurfaceContainer(textureArray));
     }
 
     // Launch the kernel via the wrapper function
@@ -301,12 +306,12 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, 
         }
         if (y_progress >= height)
         {
-            //firstImage = false;
+            firstImage = false;
             x_progress = 0;
             y_progress = 0;
         }
     }
-    else
+    else if (!generateOneImage)
     {
         launchRayTraceKernel(m_surfaceContainer->m_surface, width, height, m_sceneContainer->m_scene, 0, 0, m_settingsContainer->m_settings);
     }
@@ -322,6 +327,7 @@ void Renderer::ResetSceneInfos()
 
 void Renderer::ResetSettings()
 {
+    ResetRendering();
     Settings * dsettings = nullptr;
     MALLOC(&dsettings, sizeof(Settings));
     MEMCPY(dsettings, &settings, sizeof(Settings), cudaMemcpyHostToDevice);
