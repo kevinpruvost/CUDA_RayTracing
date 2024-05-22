@@ -39,7 +39,7 @@ __device__ double3 CalnDiffusion(Cuda_Scene* scene, Cuda_Collision* collide_prim
 
     for (int i = 0; i < scene->lightCount; ++i) {
         Cuda_Light* light = &scene->lights[i];
-        double shade = CalnShade(collide_primitive->C, primitive, light, scene->primitives, scene->primitiveCount, int(4 * scene->camera.shade_quality));
+        double shade = CalnShade(collide_primitive->C, primitive, light, scene->primitives, scene->primitiveCount, int(16 * scene->camera.shade_quality));
         if (shade < 1e-6) {
             continue;
         }

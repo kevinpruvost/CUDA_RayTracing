@@ -88,3 +88,13 @@ primitive cylinder
     refl= 0.1
     spec= 0.1
 end
+
+primitive cylinder
+    O1= 2 8 -2
+    O2= 2 8 3
+    R= 0.5
+    color= 0.5 0.5 0.5
+    diff= 0.8
+    refl= 0.1
+    spec= 0.1
+end

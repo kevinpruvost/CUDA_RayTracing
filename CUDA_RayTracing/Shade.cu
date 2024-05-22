@@ -5,6 +5,34 @@ __device__ double3 GetRandPointLight(double3 C, Cuda_Light* light)
     return light->O + light->Dx * (2 * frand() - 1.0) + light->Dy * (2 * frand() - 1.0);
 }
 
+__device__ double3 GetRandPointLightSphere(double3 C, Cuda_Light* light)
+{
+    //Vector3 toCrash = crashPoint - O;
+    //Vector3 phiAxis = toCrash.GetUnitVector() * R;
+    //Vector3 thetaAxis = phiAxis.GetAnVerticalVector();
+
+    //double maxTheta = acos(R / toCrash.Module());
+    //// theta in [-PI/2, PI/2)
+    //double theta = (ran() * 2 - 1) * maxTheta;
+
+    //// phi in [0, 2*PI)
+    //double phi = ran() * 2 * PI;
+    //Vector3 ret = phiAxis.Rotate(thetaAxis, theta).Rotate(phiAxis, phi);
+    //return O + ret;
+    
+    // Randomly sample spherical coordinates
+    double z = 2.0 * frand() - 1.0;  // Random z in range [-1, 1]
+    double theta = frand() * 2.0 * M_PI;  // Random theta in range [0, 2*pi]
+
+    // Calculate the point on the unit sphere
+    double r = sqrt(1.0 - z * z);
+    double x = r * cos(theta);
+    double y = r * sin(theta);
+
+    // Scale by the light's radius and offset by the light's position
+    return light->O + light->R * make_double3(x, y, z);
+}
+
 __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality)
 {
     double shade = 0.0f;
@@ -68,7 +96,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
         for (int i = 0; i < shade_quality; i++)
         {
             // sample a point light from light primitive
-            double3 randO = GetRandPointLight(C, light);
+            double3 randO = GetRandPointLightSphere(C, light);
 
             // light ray from diffuse point to point light
             double3 V = randO - C;

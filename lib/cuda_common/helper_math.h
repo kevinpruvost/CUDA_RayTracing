@@ -1900,6 +1900,48 @@ inline __host__ __device__ double3 Refract(double3 V, double3 N, double n)
     return reflect(V, N);
 }
 
+//Vector3 Vector3::Rotate(Vector3 axis, double theta) const
+//{
+//    Vector3 ret;
+//    double cost = cos(theta);
+//    double sint = sin(theta);
+//    axis = axis.GetUnitVector();
+//
+//    ret.x += x * (axis.x * axis.x + (1 - axis.x * axis.x) * cost);
+//    ret.x += y * (axis.x * axis.y * (1 - cost) - axis.z * sint);
+//    ret.x += z * (axis.x * axis.z * (1 - cost) + axis.y * sint);
+//
+//    ret.y += x * (axis.y * axis.x * (1 - cost) + axis.z * sint);
+//    ret.y += y * (axis.y * axis.y + (1 - axis.y * axis.y) * cost);
+//    ret.y += z * (axis.y * axis.z * (1 - cost) - axis.x * sint);
+//
+//    ret.z += x * (axis.z * axis.x * (1 - cost) - axis.y * sint);
+//    ret.z += y * (axis.z * axis.y * (1 - cost) + axis.x * sint);
+//    ret.z += z * (axis.z * axis.z + (1 - axis.z * axis.z) * cost);
+//    return ret;
+//}
+
+inline __host__ __device__ double3 rotate(double3 v, double3 axis, double theta)
+{
+    double3 ret;
+    double cost = cos(theta);
+    double sint = sin(theta);
+    axis = normalize(axis);
+
+    ret.x += v.x * (axis.x * axis.x + (1 - axis.x * axis.x) * cost);
+    ret.x += v.y * (axis.x * axis.y * (1 - cost) - axis.z * sint);
+    ret.x += v.z * (axis.x * axis.z * (1 - cost) + axis.y * sint);
+
+    ret.y += v.x * (axis.y * axis.x * (1 - cost) + axis.z * sint);
+    ret.y += v.y * (axis.y * axis.y + (1 - axis.y * axis.y) * cost);
+    ret.y += v.z * (axis.y * axis.z * (1 - cost) - axis.x * sint);
+
+    ret.z += v.x * (axis.z * axis.x * (1 - cost) - axis.y * sint);
+    ret.z += v.y * (axis.z * axis.y * (1 - cost) + axis.x * sint);
+    ret.z += v.z * (axis.z * axis.z + (1 - axis.z * axis.z) * cost);
+    return ret;
+}
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

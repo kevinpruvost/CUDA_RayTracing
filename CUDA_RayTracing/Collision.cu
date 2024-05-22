@@ -43,7 +43,7 @@ __device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* orig
                 if (!(u < 0 || u > 1))
                 {
                     collision->dist = t0;
-                    collision->front = (dot(V, d) >= 0);
+                    collision->front = (dot(V, d) < 0);
                     collision->C = P;
                     collision->N = normalize(P - (primitive->data.cylinder.O1 + u * d));
                     if (!collision->front) collision->N = -collision->N;
