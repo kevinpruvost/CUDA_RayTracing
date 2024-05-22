@@ -19,7 +19,7 @@ __device__ __shared__ curandState globalState[N_BLOCK];
 __global__ void initCurand(unsigned long * seed)
 {
     int idx = threadIdx.x;
-    curand_init(seed[idx], idx, 0, &globalState[idx]);
+    curand_init(idx, idx, 0, &globalState[idx]);
 }
 
 __device__ float frand()
@@ -44,7 +44,7 @@ __device__ float frand()
 //    return lerp({ 1.0f, 1.0f, 1.0f }, { 0.5f, 0.7f, 1.0f }, t);
 //}
 
-__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int resampling_size, int x_progress, int y_progress)
+__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int x_progress, int y_progress, Settings * settings)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -57,26 +57,37 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int heigh
     y += y_progress;
 
     double3 color = make_double3(0.0f, 0.0f, 0.0f);
-    if (resampling_size == 1)
+    if (settings->resampling_size == 1)
     {
         double3 origin = scene->camera.O;
         double3 direction = scene->camera.N + scene->camera.Dy * (2 * (double)y / scene->camera.H - 1) + scene->camera.Dx * (2 * (double)x / scene->camera.W - 1);
         color = traceRay(scene, origin, direction, 1);
     }
     else {
-        for (int i = -resampling_size / 2; i < resampling_size / 2; ++i) {
-            for (int j = -resampling_size / 2; j < resampling_size / 2; ++j) {
-                double u = double(x) + ((double)i / (resampling_size));
-                double v = double(y) + ((double)j / (resampling_size));
+        // Normal Tracing
+        //for (int i = -resampling_size / 2; i < resampling_size / 2; ++i) {
+        //    for (int j = -resampling_size / 2; j < resampling_size / 2; ++j) {
+        //        double u = double(x) + ((double)i / (resampling_size));
+        //        double v = double(y) + ((double)j / (resampling_size));
 
-                Cuda_Camera* c = &scene->camera;
-                double3 origin = c->O;
-                // N + Dy * (2 * i / H - 1) + Dx * (2 * j / W - 1)
-                double3 direction = c->N + c->Dy * (2 * (double)v / c->H - 1) + c->Dx * (2 * (double)u / c->W - 1);
+        //        Cuda_Camera* c = &scene->camera;
+        //        double3 origin = c->O;
+        //        // N + Dy * (2 * i / H - 1) + Dx * (2 * j / W - 1)
+        //        double3 direction = c->N + c->Dy * (2 * (double)v / c->H - 1) + c->Dx * (2 * (double)u / c->W - 1);
 
-                color += traceRay(scene, origin, direction, 1) / ((resampling_size) * (resampling_size));
-            }
+        //        color += traceRay(scene, origin, direction, 1) / ((resampling_size) * (resampling_size));
+        //    }
+        //}
+        // Monte Carlo Ray Tracing
+        Cuda_Camera* c = &scene->camera;
+        double3 origin = c->O;
+        for (int i = 0; i < settings->resampling_size; ++i) {
+            double u = x + (2.0f * frand() - 1.0f);
+            double v = y + (2.0f * frand() - 1.0f);
+            double3 direction = c->N + c->Dy * (2 * (double)v / c->H - 1) + c->Dx * (2 * (double)u / c->W - 1);
+            color += traceRay(scene, origin, direction, 1);
         }
+        color /= settings->resampling_size;
     }
     uchar4 outputColor;
     outputColor = make_uchar4(color.x * 255, color.y * 255, color.z * 255, 255);
@@ -85,7 +96,7 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int heigh
 }
 
 // Wrapper function to launch the kernel
-void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene * scene, int resampling_size, int x_progress, int y_progress)
+void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene * scene, int x_progress, int y_progress, Settings * settings)
 {
     // Define block and grid sizes
     dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
@@ -96,7 +107,7 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cu
     cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
     initCurand << <blocksPerGrid, threadsPerBlock >> > (seeds);
     cudaDeviceSynchronize();
-    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, width, height, scene, resampling_size, x_progress, y_progress);
+    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, width, height, scene, x_progress, y_progress, settings);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();

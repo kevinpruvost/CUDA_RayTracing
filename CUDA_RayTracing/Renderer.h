@@ -10,6 +10,10 @@
 #include "Scene.cuh"
 #include <memory>
 
+#define MALLOC(ptr, size) assert(cudaMalloc(ptr, size) == cudaSuccess)
+#define FREE(ptr) assert(cudaFree(ptr) == cudaSuccess)
+#define MEMCPY(dst, src, size, kind) assert(cudaMemcpy(dst, src, size, kind) == cudaSuccess)
+
 void FreeCudaScene(Cuda_Scene* cudaScene);
 class SceneContainer
 {
@@ -36,6 +40,17 @@ public:
     cudaSurfaceObject_t m_surface;
 };
 
+class SettingsContainer
+{
+public:
+    SettingsContainer(Settings * settings) : m_settings(settings) {
+    }
+    ~SettingsContainer() {
+        FREE(m_settings);
+    }
+    Settings * m_settings;
+};
+
 class Renderer {
 public:
     Renderer(int width, int height, const std::string & scene);
@@ -51,8 +66,12 @@ private:
     void SetupImGui();
     void SetupQuad();
     void launchCudaKernel(cudaArray* textureArray, int width, int height, Raytracer * cpuScene);
+    void ResetSceneInfos();
+    void ResetSettings();
     void LoadScene(const std::string& scenePath);
     void GUI();
+
+    cudaArray* textureArray;
 
     GLFWwindow* window;
     GLuint texture;
@@ -66,7 +85,6 @@ private:
     std::string scenePath;
     int frameIndex;
     const int maxFrames;
-    int resampling_size;
 
     void ResetRendering();
 
@@ -75,6 +93,9 @@ private:
     int x_progress;
     int y_progress;
 
+    Settings settings;
+
     std::unique_ptr<SceneContainer> m_sceneContainer;
     std::unique_ptr<SurfaceContainer> m_surfaceContainer;
+    std::unique_ptr<SettingsContainer> m_settingsContainer;
 };

@@ -19,7 +19,6 @@ Renderer::Renderer(int width, int height, const std::string& scene)
     , frameIndex(0)
     , maxFrames(100)
     , scenePath{scene}
-    , resampling_size{ 1 }
     , firstImage{true}
     , segmentation{ 10 }
     , x_progress{ 0 }
@@ -35,6 +34,12 @@ Renderer::Renderer(int width, int height, const std::string& scene)
     RegisterCUDAResources();
     SetupQuad();
     SetupImGui();
+
+    // Settings
+    settings.resampling_size = 1;
+    settings.depthOfField.enabled = false;
+    settings.depthOfField.aperture = 10.0f;
+    settings.depthOfField.focalDistance = 10.0f;
 }
 
 void Renderer::LoadScene(const std::string& scene)
@@ -220,20 +225,12 @@ static GLuint createShaderProgram(const char* vert, const char* frag)
 void Renderer::GUI()
 {
     // Display FPS
+    ImGui::SetNextWindowSize(ImVec2(420, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_FirstUseEver);
     ImGui::Begin("Details");
     ImGui::Text("Framerate: %.1f", ImGui::GetIO().Framerate);
     ImGui::Text("1 Frame each %.5f seconds", ImGui::GetIO().DeltaTime);
     ImGui::PlotLines("FPS", frameTimes.data(), maxFrames, frameIndex, nullptr, 0.0f, 100.0f, ImVec2(0, 80));
-
-    // Define the available resampling sizes
-    static const char* resamplingOptions[] = { "1", "2", "4", "8", "16"};
-    static int currentResamplingIdx = 0; // Index of the current resampling size
-
-    // Display combo box to select resampling size
-    if (ImGui::Combo("Resampling Size", &currentResamplingIdx, resamplingOptions, IM_ARRAYSIZE(resamplingOptions))) {
-        // Update resampling_size based on the selected option
-        resampling_size = std::stoi(resamplingOptions[currentResamplingIdx]);
-    }
 
     // Display combo box to load other scenes
     std::vector<std::string> scenesStr;
@@ -249,7 +246,10 @@ void Renderer::GUI()
             }
         }
     }
-    if (ImGui::BeginCombo("Scenes", scenesStr[currentSceneIdx].c_str())) {
+
+    ImGui::Separator();
+    ImGui::Text("Select Scene:");
+    if (ImGui::BeginCombo("##Select Scene:", scenesStr[currentSceneIdx].c_str())) {
         for (int i = 0; i < scenesStr.size(); i++) {
             bool is_selected = (currentSceneIdx == i);
             if (ImGui::Selectable(scenesStr[i].c_str(), is_selected)) {
@@ -262,6 +262,46 @@ void Renderer::GUI()
         }
         ImGui::EndCombo();
     }
+
+    // Define the available resampling sizes
+    static const char* resamplingOptions[] = { "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024" };
+    static int currentResamplingIdx = 0; // Index of the current resampling size
+
+    // Create a subframe for settings
+    ImGui::Separator();
+    ImGui::Text("Settings");
+    ImGui::BeginChild("SettingsFrame", ImVec2(0, 100), true, ImGuiWindowFlags_NoResize);
+    bool settingsChanged = false;
+    {
+        // Display combo box to select resampling size
+        if (ImGui::Combo("Resampling Size", &currentResamplingIdx, resamplingOptions, IM_ARRAYSIZE(resamplingOptions))) {
+            // Update resampling_size based on the selected option
+            settings.resampling_size = std::stoi(resamplingOptions[currentResamplingIdx]);
+            settingsChanged = true;
+        }
+
+        // Display checkbox to enable/disable depth of field
+        if (ImGui::Checkbox("Depth of Field", &settings.depthOfField.enabled)) {
+            settingsChanged = true;
+        }
+        if (settings.depthOfField.enabled) {
+            // Display slider to adjust aperture
+            float aperture = settings.depthOfField.aperture;
+            if (ImGui::DragFloat("Aperture", &aperture, 0.1f, 0.5f, 1000.0f)) {
+                settings.depthOfField.aperture = aperture;
+                settingsChanged = true;
+            }
+
+            // Display slider to adjust focal distance
+            float focalDistance = settings.depthOfField.focalDistance;
+            if (ImGui::DragFloat("Focal Distance", &focalDistance, 0.1f, 0.5f, 1000.0f)) {
+                settingsChanged = true;
+                focalDistance = settings.depthOfField.focalDistance;
+            }
+        }
+    }
+    if (settingsChanged) ResetSettings();
+    ImGui::EndChild(); // End Settings
 
     ImGui::End();
 }
@@ -305,7 +345,6 @@ void Renderer::Render()
         ImGui::NewFrame();
 
         // Map CUDA resource
-        cudaArray* textureArray;
         cudaGraphicsMapResources(1, &cudaTextureResource, 0);
         cudaGraphicsSubResourceGetMappedArray(&textureArray, cudaTextureResource, 0, 0);
 

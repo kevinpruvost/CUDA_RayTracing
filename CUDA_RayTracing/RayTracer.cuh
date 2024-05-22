@@ -9,7 +9,7 @@
 // Declare the CUDA kernel
 __global__ void rayTraceKernel(uchar4* output, int width, int height);
 // Declare the wrapper function
-void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int resampling_size, int x_progress, int y_progress);
+void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int x_progress, int y_progress, Settings* settings);
 
 // Utility functions (if needed, you can also declare them here)
 //__device__ float3 make_float3(float x, float y, float z);

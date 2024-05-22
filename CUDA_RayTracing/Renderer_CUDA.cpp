@@ -5,10 +5,6 @@
 #define assert(x) if (!(x)) { printf("Assertion failed: %s\n", #x); exit(1); }
 #endif
 
-#define MALLOC(ptr, size) assert(cudaMalloc(ptr, size) == cudaSuccess)
-#define FREE(ptr) assert(cudaFree(ptr) == cudaSuccess)
-#define MEMCPY(dst, src, size, kind) assert(cudaMemcpy(dst, src, size, kind) == cudaSuccess)
-
 void createCudaCameraFromCPUCamera(Cuda_Camera * cudaCamera, Camera* camera, int width, int height)
 {
     // Camera position
@@ -287,19 +283,16 @@ void FreeCudaScene(Cuda_Scene* cudaScene)
 // Renderer function to launch the kernel and work with surfaces
 void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, Raytracer * cpuScene)
 {
-    if (m_surfaceContainer.get() == nullptr)
-        m_surfaceContainer.reset(new SurfaceContainer(textureArray));
-
-    if (m_sceneContainer.get() == nullptr)
+    if (m_surfaceContainer.get() == nullptr || m_sceneContainer.get() == nullptr)
     {
-        m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(cpuScene, width, height)));
-        cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
+        ResetSceneInfos();
+        ResetSettings();
     }
 
     // Launch the kernel via the wrapper function
-    if (firstImage && resampling_size > 2)
+    if (firstImage && settings.resampling_size > 8)
     {
-        launchRayTraceKernel(m_surfaceContainer->m_surface, width / segmentation, height / segmentation, m_sceneContainer->m_scene, resampling_size, x_progress, y_progress);
+        launchRayTraceKernel(m_surfaceContainer->m_surface, width / segmentation, height / segmentation, m_sceneContainer->m_scene, x_progress, y_progress, m_settingsContainer->m_settings);
         x_progress += width / segmentation;
         if (x_progress >= width)
         {
@@ -315,6 +308,22 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, 
     }
     else
     {
-        launchRayTraceKernel(m_surfaceContainer->m_surface, width, height, m_sceneContainer->m_scene, resampling_size, 0, 0);
+        launchRayTraceKernel(m_surfaceContainer->m_surface, width, height, m_sceneContainer->m_scene, 0, 0, m_settingsContainer->m_settings);
     }
+}
+
+void Renderer::ResetSceneInfos()
+{
+    m_surfaceContainer.reset(new SurfaceContainer(textureArray));
+
+    m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height)));
+    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
+}
+
+void Renderer::ResetSettings()
+{
+    Settings * dsettings = nullptr;
+    MALLOC(&dsettings, sizeof(Settings));
+    MEMCPY(dsettings, &settings, sizeof(Settings), cudaMemcpyHostToDevice);
+    m_settingsContainer.reset(new SettingsContainer(dsettings));
 }

@@ -6,6 +6,19 @@
 #include "Light.cuh"
 #include "Camera.cuh"
 
+struct DepthOfField
+{
+    bool enabled;
+    double focalDistance;
+    double aperture;
+};
+
+struct Settings
+{
+    DepthOfField depthOfField;
+    int resampling_size;
+};
+
 struct Cuda_Scene
 {
     double3 backgroundColor_top;
