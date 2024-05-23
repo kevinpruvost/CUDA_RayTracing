@@ -106,5 +106,6 @@ __device__ double3 GetTextureColor(Cuda_Collision * collision);
 
 __device__ bool intersect(Cuda_Primitive * primitive, const double3 * origin, const double3 * direction, Cuda_Collision* collision);
 __device__ void BezierIntersect(Cuda_Primitive* primitive, const double3* origin, const double3* direction, Cuda_Collision* collision);
+__device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* origin, const double3* direction, Cuda_Collision* collision);
 
 #endif
