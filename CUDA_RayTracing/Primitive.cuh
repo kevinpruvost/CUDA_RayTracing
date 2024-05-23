@@ -4,6 +4,7 @@
 #include <cuda_runtime.h>
 #include <helper_math.h>
 
+__device__ void incrementFrite();
 struct Cuda_Material
 {
     double3 color, absor;

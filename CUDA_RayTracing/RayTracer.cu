@@ -110,6 +110,12 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int heigh
     surf2Dwrite(outputColor, surface, x * sizeof(uchar4), y);
 }
 
+__device__ int frite = 0;
+__device__ void incrementFrite()
+{
+    ++frite;
+}
+
 // Wrapper function to launch the kernel
 void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene * scene, int x_progress, int y_progress, Settings * settings)
 {
@@ -127,6 +133,7 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cu
     initCurand << <blocksPerGrid, threadsPerBlock >> > ();
     cudaDeviceSynchronize();
     rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, width, height, scene, x_progress, y_progress, settings);
+    cudaDeviceSynchronize();
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();
@@ -134,6 +141,9 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cu
         fprintf(stderr, "Failed to launch rayTraceKernel (error code %s)!\n", cudaGetErrorString(err));
     }
 
+    int hostVar;
+    cudaMemcpyFromSymbol(&hostVar, frite, sizeof(int), 0, cudaMemcpyDeviceToHost);
+    printf("Passes: %d\n", hostVar);
+
     // Wait for GPU to finish before accessing on host
-    cudaDeviceSynchronize();
 }

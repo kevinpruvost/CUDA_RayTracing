@@ -57,13 +57,12 @@ __device__ bool intersectAABB(const double3& origin, const double3& direction, c
 
 __device__ bool traverseBVH(const double3 * origin, const double3 * direction, const Cuda_BVH * node, Cuda_Collision * collision, Cuda_Primitive * ignorePrimitive, Cuda_Primitive * ignorePrimitive2)
 {
-    return false;
     if (node == nullptr) return false;
     if (!intersectAABB(*origin, *direction, node->min, node->max))
         return false;
 
     bool ignore = node->primitive == 0 || ignorePrimitive == node->primitive || ignorePrimitive2 == node->primitive;
-    if (ignore)
+    if (!ignore)
     {
         Cuda_Collision temp_collision = InitCudaCollision();
         if (intersect_primitives(node->primitive, origin, direction, &temp_collision))
@@ -85,6 +84,14 @@ __device__ bool traverseBVH(const double3 * origin, const double3 * direction, c
 __device__ Cuda_Collision intersect(Cuda_BVH * bvh, const double3* origin, const double3* direction, Cuda_Primitive * ignorePrimitive, Cuda_Primitive * ignorePrimitive2)
 {
     Cuda_Collision collision = InitCudaCollision();
+    traverseBVH(origin, direction, bvh, &collision, ignorePrimitive, ignorePrimitive2);
+    return collision;
+}
+
+__device__ Cuda_Collision intersect(Cuda_BVH* bvh, const double3* origin, const double3* direction, Cuda_Primitive* ignorePrimitive, Cuda_Primitive* ignorePrimitive2, double distanceLimit)
+{
+    Cuda_Collision collision = InitCudaCollision();
+    collision.dist = distanceLimit;
     traverseBVH(origin, direction, bvh, &collision, ignorePrimitive, ignorePrimitive2);
     return collision;
 }

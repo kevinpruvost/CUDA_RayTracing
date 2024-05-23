@@ -34,7 +34,7 @@ __device__ double CalnShade(const double3 & C, Cuda_Primitive * crashed_Primitiv
         double dist = length(V);
 
         // if light ray collide any object, light source produce no shade to diffuse light
-        Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1]);
+        Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1], dist);
         if (tmp.isCollide) return 0.0f;
 
         shade = 1.0f;
@@ -54,9 +54,8 @@ __device__ double CalnShade(const double3 & C, Cuda_Primitive * crashed_Primitiv
 
             int addShade = 1;
 
-
             // if light ray collide any object, light source produce no shade to diffuse light
-            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1]);
+            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1], dist);
             if (tmp.isCollide) shade = 0;
             shade += addShade;
         }
@@ -77,7 +76,7 @@ __device__ double CalnShade(const double3 & C, Cuda_Primitive * crashed_Primitiv
 
             int addShade = 1;
             // if light ray collide any object, light source produce no shade to diffuse light
-            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1]);
+            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1], dist);
             if (tmp.isCollide) shade = 0;
             shade += addShade;
         }

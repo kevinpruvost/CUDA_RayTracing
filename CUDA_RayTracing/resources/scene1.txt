@@ -75,8 +75,8 @@ primitive plane
     R= -4
     color= 0 0 1
     diff= 1
-    Dx= 8 0 0
-    Dy= 0 8 0
+    Dx= 50 0 0
+    Dy= 0 50 0
 end
 
 primitive cylinder
@@ -99,34 +99,4 @@ primitive cylinder
     diff= 0.8
     refl= 0.1
     spec= 0.1
-end
-
-primitive triangle
-    O1= 0 5 -1.5
-    O2= 0 5 -1.8
-    O3= 0.3 5 -1.5
-    color= 0 1 0
-    diff= 0.5
-    refl= 0.2
-    spec= 0.3
-end
-
-primitive triangle
-    O1= -1 4.5 -1.2
-    O2= -1 4.5 -1.5
-    O3= -0.7 4.5 -1.2
-    color= 1 0 1
-    diff= 0.7
-    refl= 0.3
-    spec= 0.4
-end
-
-primitive triangle
-    O1= 2 6 -1.4
-    O2= 2 6 -1.7
-    O3= 2.3 6 -1.4
-    color= 0 0 1
-    diff= 0.6
-    refl= 0.1
-    spec= 0.2
 end
