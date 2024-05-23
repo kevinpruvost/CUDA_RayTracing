@@ -3,7 +3,7 @@
 int main()
 {
     Renderer renderer(1600, 900,
-        "scene1.txt"
+        "scene_bezier.txt"
     );
     renderer.Render();
     return 0;

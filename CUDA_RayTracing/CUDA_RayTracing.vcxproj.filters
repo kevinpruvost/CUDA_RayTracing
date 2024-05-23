@@ -91,6 +91,9 @@
       <Filter>Scene_GPU</Filter>
     </CudaCompile>
     <CudaCompile Include="RayTracer.cu" />
+    <CudaCompile Include="Collision_Bezier.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resources">
@@ -137,6 +140,15 @@
       <Filter>Resources</Filter>
     </Text>
     <Text Include="resources\scene4.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene_bezier.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene_mesh1.txt">
+      <Filter>Resources</Filter>
+    </Text>
+    <Text Include="resources\scene_mesh2.txt">
       <Filter>Resources</Filter>
     </Text>
   </ItemGroup>

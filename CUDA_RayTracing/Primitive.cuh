@@ -27,6 +27,11 @@ enum Cuda_Primitive_Type
     Cuda_Primitive_Type_Triangle
 };
 
+struct Cuda_Triangle {
+    double3 O1, O2, O3;
+    double3 N;
+};
+
 // Struct for Sphere
 struct Cuda_Sphere {
     double3 O;  // Center of the sphere
@@ -62,6 +67,7 @@ struct Cuda_Bezier {
     double3 N;   // Normal
     double3 Nx;  // Tangent vector
     double3 Ny;  // Binormal vector
+    double R_c;    // Radius of the cylinder based on the Bezier curve
     int degree;  // Degree of the Bezier curve
     // Here we assume R and Z arrays have a fixed maximum size for simplicity and only that have only R[degree] and Z[degree] data
     double R[10];  // Radii for control points (assuming a maximum degree)
@@ -75,6 +81,7 @@ union Cuda_Primitive_Data {
     Cuda_Square square;
     Cuda_Cylinder cylinder;
     Cuda_Bezier bezier;
+    Cuda_Triangle triangle;
     // Add other primitives here (like triangle) if needed
 };
 
@@ -98,5 +105,6 @@ __device__ Cuda_Collision InitCudaCollision();
 __device__ double3 GetTextureColor(Cuda_Collision * collision);
 
 __device__ bool intersect(Cuda_Primitive * primitive, const double3 * origin, const double3 * direction, Cuda_Collision* collision);
+__device__ void BezierIntersect(Cuda_Primitive* primitive, const double3* origin, const double3* direction, Cuda_Collision* collision);
 
 #endif

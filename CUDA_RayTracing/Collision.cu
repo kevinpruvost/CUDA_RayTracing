@@ -106,6 +106,48 @@ __device__ void CylinderIntersect(Cuda_Primitive* primitive, const double3* orig
     }
 }
 
+// Function to check triangle-ray intersection using Möller–Trumbore algorithm
+__device__ bool TriangleIntersect(const Cuda_Triangle* triangle, const double3* origin, const double3* direction, double* t, double3* P, double3* N)
+{
+    const double EPSILON = 1e-6;
+    double3 V1 = triangle->O1;
+    double3 V2 = triangle->O2;
+    double3 V3 = triangle->O3;
+
+    double3 edge1 = V2 - V1;
+    double3 edge2 = V3 - V1;
+    double3 h = cross(*direction, edge2);
+    double a = dot(edge1, h);
+
+    if (fabs(a) < EPSILON)
+        return false; // This ray is parallel to this triangle.
+
+    double f = 1.0 / a;
+    double3 s = *origin - V1;
+    double u = f * dot(s, h);
+
+    if (u < 0.0 || u > 1.0)
+        return false;
+
+    double3 q = cross(s, edge1);
+    double v = f * dot(*direction, q);
+
+    if (v < 0.0 || u + v > 1.0)
+        return false;
+
+    double temp = f * dot(edge2, q);
+
+    if (temp > EPSILON) // ray intersection
+    {
+        *t = temp;
+        *P = *origin + (*direction) * (*t);
+        *N = normalize(cross(edge1, edge2));
+        return true;
+    }
+    else // This means that there is a line intersection but not a ray intersection.
+        return false;
+}
+
 __device__ bool intersect(Cuda_Primitive* primitive, const double3 * origin, const double3 * direction, Cuda_Collision* collision)
 {
     switch (primitive->type)
@@ -182,7 +224,7 @@ __device__ bool intersect(Cuda_Primitive* primitive, const double3 * origin, con
 
             //ret.dist = t;
             //ret.front = (d < 0);
-            //ret.C = P;
+            //ret.O3 = P;
             //ret.N = (ret.front) ? N : -N;
             //ret.isCollide = true;
             //ret.collide_primitive = this;
@@ -219,35 +261,22 @@ __device__ bool intersect(Cuda_Primitive* primitive, const double3 * origin, con
         }
         case Cuda_Primitive_Type_Bezier:
         {
-            // Bezier collision detection (simple approximation for demonstration)
-            double3 V = normalize(*direction);
-            double3 P = *origin;
-            double t_min = 1e-6;
-            double t_max = 1e10;
-
-            // Iterate over the control points (simple approximation, you may need a more complex approach)
-            for (int i = 0; i < primitive->data.bezier.degree; ++i) {
-                double3 B = lerp(primitive->data.bezier.O1, primitive->data.bezier.O2, i / (double)primitive->data.bezier.degree);
-                double r = primitive->data.bezier.R[i];
-                double3 m = P - B;
-                double b = dot(m, V);
-                double c = dot(m, m) - r * r;
-                if (c > 0.0 && b > 0.0) continue;
-
-                double disc = b * b - c;
-                if (disc < 0.0) continue;
-
-                double t0 = -b - sqrt(disc);
-                if (t0 < t_min || t0 > t_max) continue;
-
-                collision->dist = t0;
-                collision->C = P + V * t0;
-                collision->N = normalize(collision->C - B);
-                collision->front = (dot(V, collision->N) < 0);
-                if (!collision->front) collision->N = -collision->N;
+            BezierIntersect(primitive, origin, direction, collision);
+            break;
+        }
+        case Cuda_Primitive_Type_Triangle:
+        {
+            double t;
+            double3 P, N;
+            if (TriangleIntersect(&(primitive->data.triangle), origin, direction, &t, &P, &N))
+            {
+                collision->dist = t;
+                collision->C = P;
+                collision->N = N;
                 collision->isCollide = true;
                 collision->collide_primitive = primitive;
-                break;
+                collision->front = dot(*direction, N) < 0;
+                return true;
             }
             break;
         }

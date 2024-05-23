@@ -258,12 +258,22 @@ Color Cylinder::GetTexture(Vector3 crash_C) {
 // -----------------------------------------------
 
 void Bezier::Input( std::string var , std::stringstream& fin ) {
-    if ( var == "O1=" ) O1.Input( fin );
-    if ( var == "O2=" ) O2.Input( fin );
+    if (var == "O1=")
+    {
+        O1.Input(fin);
+    }
+    if (var == "O2=")
+    {
+        O2.Input(fin);
+        N = (O2 - O1).GetUnitVector();
+        Nx = N.GetAnVerticalVector();
+        Ny = N * Nx;
+    }
     if ( var == "P=" ) {
         degree++;
         double newR, newZ;
         fin>>newZ>>newR;
+        if (newR > R_c) R_c = newR;
         R.push_back(newR);
         Z.push_back(newZ);
     }
@@ -301,4 +311,32 @@ std::pair<double, double> Bezier::valueAt(double u, const std::vector<double>& x
         y += factor * ys[i];
     }
     return std::make_pair(x, y);
+}
+
+void Triangle::Input(std::string var, std::stringstream& fin)
+{
+    if (var == "O1=")
+    {
+        O1.Input(fin);
+    }
+    if (var == "O2=")
+    {
+        O2.Input(fin);
+    }
+    if (var == "O3=")
+    {
+        O3.Input(fin);
+        N = ((O2 - O1) * (O3 - O1)).GetUnitVector();
+    }
+    Primitive::Input(var, fin);
+}
+
+CollidePrimitive Triangle::Collide(Vector3 ray_O, Vector3 ray_V)
+{
+    return CollidePrimitive();
+}
+
+Color Triangle::GetTexture(Vector3 crash_C)
+{
+    return Color();
 }

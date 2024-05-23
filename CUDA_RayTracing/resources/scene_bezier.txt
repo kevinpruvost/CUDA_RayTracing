@@ -1,0 +1,61 @@
+# ================ background ================
+
+# blue sky
+background
+    top= 0.5 0.7 1.0
+    bottom= 1.0 1.0 1.0
+end
+
+# ================ camera ================
+
+camera
+    O= 50 -295.6 72
+    N= 0.1 1.5 -0.04
+    shade_quality= 1
+    drefl_quality= 1
+    image_H= 960
+    image_W= 1280
+    lens_H= 0.6
+    lens_W= 1.0
+end
+
+# ================ lights ================
+
+light sphere
+    O= 0 -200 65
+    R= 2
+    color= 1 1 1
+end
+
+# ================ world ================
+
+# floor
+primitive plane
+    N= 0 0 1
+    R= 0
+    color= 1 1 1
+    diff= 0.7
+    refl= 0.1
+    drefl= 0.15
+    texture= floor.bmp
+    Dx= 99 0 0
+    Dy= 0 99 0
+    blur= exp
+end
+
+# ================ objects ================
+
+primitive bezier
+    O1= 80 -10 0
+    O2= 80 -10 30
+    P= 1 5
+    P= 10 10
+    P= 15 20
+    P= 2 25
+    refl= 0.3
+    drefl= 0.15
+    color= 1 0.8 0
+    diff= 1
+    spec= 0.8
+    refl= 0
+end

@@ -161,12 +161,13 @@ class Bezier : public Primitive {
 public:
     Vector3 O1, O2;
     Vector3 N, Nx, Ny;
+    double R_c;
     std::vector<double> R;
     std::vector<double> Z;
     int degree;
 
 public:
-    Bezier() : Primitive() { degree = -1;}
+    Bezier() : Primitive(), R_c{ 0.0f } { degree = -1; }
     ~Bezier() {}
 
     void Input( std::string , std::stringstream& );
@@ -177,7 +178,19 @@ private:
     std::pair<double, double> valueAt(double u);
     std::pair<double, double> valueAt(double u, const std::vector<double>& xs, const std::vector<double>& ys);
 };
- 
 
+class Triangle : public Primitive {
+public:
+    Vector3 O1, O2, O3;
+    Vector3 N;
+
+public:
+    Triangle() : Primitive() { }
+    ~Triangle() {}
+
+    void Input(std::string, std::stringstream&);
+    CollidePrimitive Collide(Vector3 ray_O, Vector3 ray_V);
+    Color GetTexture(Vector3 crash_C);
+};
 
 #endif

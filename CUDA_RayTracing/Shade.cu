@@ -7,19 +7,6 @@ __device__ double3 GetRandPointLight(double3 C, Cuda_Light* light)
 
 __device__ double3 GetRandPointLightSphere(double3 C, Cuda_Light* light)
 {
-    //Vector3 toCrash = crashPoint - O;
-    //Vector3 phiAxis = toCrash.GetUnitVector() * R;
-    //Vector3 thetaAxis = phiAxis.GetAnVerticalVector();
-
-    //double maxTheta = acos(R / toCrash.Module());
-    //// theta in [-PI/2, PI/2)
-    //double theta = (ran() * 2 - 1) * maxTheta;
-
-    //// phi in [0, 2*PI)
-    //double phi = ran() * 2 * PI;
-    //Vector3 ret = phiAxis.Rotate(thetaAxis, theta).Rotate(phiAxis, phi);
-    //return O + ret;
-    
     // Randomly sample spherical coordinates
     double z = 2.0 * frand() - 1.0;  // Random z in range [-1, 1]
     double theta = frand() * 2.0 * M_PI;  // Random theta in range [0, 2*pi]

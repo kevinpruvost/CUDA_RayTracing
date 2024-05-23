@@ -171,15 +171,27 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
             MEMCPY(&cudaPrimitives[i].data.bezier.O1, &bezier->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.bezier.O2, &bezier->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.bezier.degree, &bezier->degree, sizeof(int), cudaMemcpyHostToDevice);
-            MEMCPY(&cudaPrimitives[i].data.bezier.R, bezier->R.data(), bezier->degree * sizeof(double), cudaMemcpyHostToDevice);
-            MEMCPY(&cudaPrimitives[i].data.bezier.Z, bezier->Z.data(), bezier->degree * sizeof(double), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.N, &bezier->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.Nx, &bezier->Nx, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.Ny, &bezier->Ny, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.R_c, &bezier->R_c, sizeof(double), cudaMemcpyHostToDevice);
+            double* rData = bezier->R.data();
+            double* zData = bezier->Z.data();
+            MEMCPY(&cudaPrimitives[i].data.bezier.R, rData, (bezier->degree + 1) * sizeof(double), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.bezier.Z, zData, (bezier->degree + 1) * sizeof(double), cudaMemcpyHostToDevice);
 
             type = Cuda_Primitive_Type_Bezier;
         }
-        //else if (dynamic_cast<Triangle*>(currentPrimitive) != nullptr)
-        //{
-        //    type = Cuda_Primitive_Type_Triangle;
-        //}
+        else if (dynamic_cast<Triangle*>(currentPrimitive) != nullptr)
+        {
+            type = Cuda_Primitive_Type_Triangle;
+
+            Triangle * triangle = dynamic_cast<Triangle*>(currentPrimitive);
+            MEMCPY(&cudaPrimitives[i].data.triangle.O1, &triangle->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.triangle.O2, &triangle->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.triangle.O3, &triangle->O3, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.triangle.N, &triangle->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+        }
         MEMCPY(&cudaPrimitives[i].type, &type, sizeof(Cuda_Primitive_Type), cudaMemcpyHostToDevice);
 
         currentPrimitive = currentPrimitive->GetNext();
