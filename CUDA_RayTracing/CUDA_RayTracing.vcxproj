@@ -172,6 +172,7 @@
   <ItemGroup>
     <ClCompile Include="bmp.cpp" />
     <ClCompile Include="BmpSave.cpp" />
+    <ClCompile Include="BVH.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -186,6 +187,7 @@
   <ItemGroup>
     <ClInclude Include="bmp.h" />
     <ClInclude Include="BmpSave.h" />
+    <ClInclude Include="BVH.h" />
     <ClInclude Include="Camera.cuh" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="color.h" />
@@ -248,7 +250,7 @@
     <Text Include="resources\scene3.txt" />
     <Text Include="resources\scene4.txt" />
     <Text Include="resources\scene5.txt" />
-    <Text Include="resources\scene_stacks.txt" />
+    <Text Include="resources\scene_bezier.txt" />
     <Text Include="resources\scene_mesh1.txt" />
     <Text Include="resources\scene_mesh2.txt" />
   </ItemGroup>

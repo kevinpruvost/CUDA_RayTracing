@@ -111,6 +111,7 @@ void Sphere::Input( std::string var , std::stringstream& fin ) {
         max.y = O.y + R;
         min.z = O.z - R;
         max.z = O.z + R;
+        centroid = (min + max) / 2;
     }
     if ( var == "De=" ) De.Input( fin );
     if (var == "Dc=")
@@ -182,6 +183,7 @@ void Plane::Input( std::string var , std::stringstream& fin ) {
         max.y = std::max(std::max(std::max(p1.y, p2.y), p3.y), p4.y);
         min.z = std::min(std::min(std::min(p1.z, p2.z), p3.z), p4.z);
         max.z = std::max(std::max(std::max(p1.z, p2.z), p3.z), p4.z);
+        centroid = (min + max) / 2;
     }
     Primitive::Input( var , fin );
 }
@@ -226,6 +228,7 @@ void Square::Input( std::string var , std::stringstream& fin ) {
         max.y = std::max(O.y, O.y + Dx.y + Dy.y);
         min.z = std::min(O.z, O.z + Dx.z + Dy.z);
         max.z = std::max(O.z, O.z + Dx.z + Dy.z);
+        centroid = (min + max) / 2;
     }
     Primitive::Input( var , fin );
 }
@@ -289,6 +292,7 @@ void Cylinder::Input( std::string var , std::stringstream& fin ) {
         max.y = std::max(O1.y, O2.y) + R;
         min.z = std::min(O1.z, O2.z) - R;
         max.z = std::max(O1.z, O2.z) + R;
+        centroid = (min + max) / 2;
     }
     Primitive::Input( var , fin );
 }
@@ -336,6 +340,7 @@ void Bezier::Input( std::string var , std::stringstream& fin ) {
         max.y = std::max(O1.y, O2.y) + R_c;
         min.z = std::min(O1.z, O2.z) - R_c;
         max.z = std::max(O1.z, O2.z) + R_c;
+        centroid = (min + max) / 2;
     }
     Primitive::Input( var , fin );
 }
@@ -395,6 +400,7 @@ void Triangle::Input(std::string var, std::stringstream& fin)
         max.y = std::max(std::max(O1.y, O2.y), O3.y);
         min.z = std::min(std::min(O1.z, O2.z), O3.z);
         max.z = std::max(std::max(O1.z, O2.z), O3.z);
+        centroid = (min + max) / 2;
     }
     Primitive::Input(var, fin);
 }

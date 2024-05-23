@@ -19,6 +19,14 @@ struct Settings
     int resampling_size;
 };
 
+struct Cuda_BVH
+{
+    Cuda_BVH * left;
+    Cuda_BVH * right;
+    double3 min;
+    double3 max;
+};
+
 struct Cuda_Scene
 {
     double3 backgroundColor_top;

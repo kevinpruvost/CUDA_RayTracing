@@ -29,6 +29,7 @@
     </ClCompile>
     <ClCompile Include="Renderer_CUDA.cpp" />
     <ClCompile Include="BmpSave.cpp" />
+    <ClCompile Include="BVH.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
@@ -73,6 +74,7 @@
     </ClInclude>
     <ClInclude Include="RayTracer.cuh" />
     <ClInclude Include="BmpSave.h" />
+    <ClInclude Include="BVH.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Scene.cu">
@@ -142,7 +144,7 @@
     <Text Include="resources\scene4.txt">
       <Filter>Resources</Filter>
     </Text>
-    <Text Include="resources\scene_stacks.txt">
+    <Text Include="resources\scene_bezier.txt">
       <Filter>Resources</Filter>
     </Text>
     <Text Include="resources\scene_mesh1.txt">

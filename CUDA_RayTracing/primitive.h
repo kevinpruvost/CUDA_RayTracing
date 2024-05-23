@@ -51,6 +51,7 @@ public:
     Material* material;
     Primitive* next;
     Vector3 min, max;
+    Vector3 centroid;
 
 public:
 
