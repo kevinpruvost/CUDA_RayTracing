@@ -1385,6 +1385,21 @@ inline __host__ __device__ uint4 min(uint4 a, uint4 b)
     return make_uint4(min(a.x,b.x), min(a.y,b.y), min(a.z,b.z), min(a.w,b.w));
 }
 
+inline __host__ __device__ double2 fmin(double2 a, double2 b)
+{
+    return make_double2(fmin(a.x,b.x), fmin(a.y,b.y));
+}
+
+inline __host__ __device__ double3 fmin(double3 a, double3 b)
+{
+    return make_double3(fmin(a.x,b.x), fmin(a.y,b.y), fmin(a.z,b.z));
+}
+
+inline __host__ __device__ double4 fmin(double4 a, double4 b)
+{
+    return make_double4(fmin(a.x,b.x), fmin(a.y,b.y), fmin(a.z,b.z), fmin(a.w,b.w));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // max
 ////////////////////////////////////////////////////////////////////////////////
@@ -1400,6 +1415,21 @@ inline __host__ __device__ float3 fmaxf(float3 a, float3 b)
 inline __host__ __device__ float4 fmaxf(float4 a, float4 b)
 {
     return make_float4(fmaxf(a.x,b.x), fmaxf(a.y,b.y), fmaxf(a.z,b.z), fmaxf(a.w,b.w));
+}
+
+inline __host__ __device__ double2 fmax(double2 a, double2 b)
+{
+    return make_double2(fmax(a.x,b.x), fmax(a.y,b.y));
+}
+
+inline __host__ __device__ double3 fmax(double3 a, double3 b)
+{
+    return make_double3(fmax(a.x,b.x), fmax(a.y,b.y), fmax(a.z,b.z));
+}
+
+inline __host__ __device__ double4 fmax(double4 a, double4 b)
+{
+    return make_double4(fmax(a.x,b.x), fmax(a.y,b.y), fmax(a.z,b.z), fmax(a.w,b.w));
 }
 
 inline __host__ __device__ int2 max(int2 a, int2 b)

@@ -1,19 +1,23 @@
 #include "BVH.h"
 
 #include <algorithm>
+#include <assert.h>
+
+#ifndef _DEBUG
+#undef assert
+#define assert(x) if (!(x)) { printf("Assertion failed: %s\n", #x); exit(1); }
+#endif
 
 BVH::BVH(Raytracer& raytracer)
-    : root{ nullptr }
+    : _root{ nullptr }
     , cuda_root{ nullptr } 
 {
     Build(raytracer);
-    LoadOnCUDA();
 }
 
 BVH::~BVH()
 {
     Free();
-    FreeOnCUDA();
 }
 
 bool isInside(Primitive* prim1, Primitive* prim2)
@@ -110,19 +114,223 @@ void BVH::Build(Raytracer& raytracer)
 {
     Primitive * primitive_head = raytracer.scene.primitive_head;
 
+    if (primitive_head == nullptr) return;
     auto primitives = convertLinkedListToArray(primitive_head);
     auto mortonCodes = computeAndSortMortonCodes(primitives);
-    root = buildBVHFromMortonCodes(mortonCodes, 0, mortonCodes.size());
+    _root = buildBVHFromMortonCodes(mortonCodes, 0, mortonCodes.size());
+}
+
+void FreeNode(BVH_Node* node)
+{
+    if (!node) return;
+
+    FreeNode(node->left);
+    FreeNode(node->right);
+    delete node;
 }
 
 void BVH::Free()
 {
+    if (!_root) return;
+
+    FreeNode(_root);
 }
 
-void BVH::FreeOnCUDA()
+#define MALLOC(ptr, size) assert(cudaMalloc(ptr, size) == cudaSuccess)
+#define FREE(ptr) assert(cudaFree(ptr) == cudaSuccess)
+#define MEMCPY(dst, src, size, kind) assert(cudaMemcpy(dst, src, size, kind) == cudaSuccess)
+
+void FreeBVHOnCUDA(Cuda_BVH* node)
 {
+    if (!node) return;
+
+    if (node->left)
+    {
+        FreeBVHOnCUDA(node->left);
+        FREE(node->left);
+    }
+    if (node->right)
+    {
+        FreeBVHOnCUDA(node->right);
+        FREE(node->right);
+    }
+    if (node->primitive)
+    {
+        FREE(node->primitive->material.texture);
+        FREE(node->primitive);
+    }
+    delete node;
 }
 
-void BVH::LoadOnCUDA()
+Cuda_BVH * BVH::LoadOnCUDA(BVH_Node * root)
 {
+    Cuda_BVH* cuda_root;
+    MALLOC(&cuda_root, sizeof(Cuda_BVH));
+
+    Cuda_BVH* new_node;
+    if (root->left) {
+        new_node = LoadOnCUDA(root->left);
+    } else {
+        new_node = nullptr;
+    }
+    MEMCPY(&cuda_root->left, &new_node, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
+
+    if (root->right) {
+        new_node = LoadOnCUDA(root->right);
+    }
+    else {
+        new_node = nullptr;
+    }
+    MEMCPY(&cuda_root->right, &new_node, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
+
+    MEMCPY(&cuda_root->min, &root->min, sizeof(Vector3), cudaMemcpyHostToDevice);
+    MEMCPY(&cuda_root->max, &root->max, sizeof(Vector3), cudaMemcpyHostToDevice);
+    
+    Cuda_Primitive * primitive = nullptr;
+    if (root->primitive) {
+        primitive = AllocateCudaPrimitive(root->primitive);
+    }
+    MEMCPY(&cuda_root->primitive, &primitive, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
+    return cuda_root;
+}
+
+Cuda_BVH* BVH::LoadOnCUDA(Light* lights, Cuda_Light ** cudaLights, int lightCount)
+{
+    __lights = lights;
+    __cudaLights = cudaLights;
+    __lightCount = lightCount;
+    return LoadOnCUDA(_root);
+}
+
+Cuda_Primitive* BVH::AllocateCudaPrimitive(Primitive* currentPrimitive)
+{
+    Cuda_Primitive* cudaPrimitive;
+    MALLOC(&cudaPrimitive, sizeof(Cuda_Primitive));
+    // Primitive properties
+    bool isLightPrimitive = currentPrimitive->IsLightPrimitive();
+    MEMCPY(&cudaPrimitive->isLightPrimitive, &isLightPrimitive, sizeof(bool), cudaMemcpyHostToDevice);
+    // Material
+    {
+        //struct Cuda_Material
+        //{
+        //    float3 color, absor;
+        //    double refl, refr;
+        //    double diff, spec;
+        //    double rindex;
+        //    double drefl;
+        //    uchar3 * texture;
+        //    int texture_width, texture_height;
+        //};
+        Material* material = currentPrimitive->GetMaterial();
+        MEMCPY(&cudaPrimitive->material.color, &material->color, sizeof(Color), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.absor, &material->absor, sizeof(Color), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.refl, &material->refl, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.refr, &material->refr, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.diff, &material->diff, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.spec, &material->spec, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.rindex, &material->rindex, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->material.drefl, &material->drefl, sizeof(double), cudaMemcpyHostToDevice);
+        if (material->texture != nullptr) {
+            int texture_width = material->texture->GetW();
+            int texture_height = material->texture->GetH();
+            MEMCPY(&cudaPrimitive->material.texture_height, &texture_height, sizeof(int), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitive->material.texture_width, &texture_width, sizeof(int), cudaMemcpyHostToDevice);
+
+            uchar3* texture = new uchar3[texture_width * texture_height];
+            for (int i = 0; i < texture_width; ++i)
+                for (int j = 0; j < texture_height; ++j)
+                    memcpy(&texture[i * (int)texture_height + j], &material->texture->ima[j][i], sizeof(uchar3));
+            uchar3* texturePtr;
+            MALLOC(&texturePtr, texture_width * texture_height * sizeof(uchar3));
+            MEMCPY(texturePtr, texture, texture_width * texture_height * sizeof(uchar3), cudaMemcpyHostToDevice);
+            MEMCPY(&(cudaPrimitive->material.texture), &texturePtr, sizeof(uchar3*), cudaMemcpyHostToDevice);
+            delete texture;
+        }
+        else {
+            cudaMemset(&cudaPrimitive->material.texture, 0, sizeof(uchar3**));
+            cudaMemset(&cudaPrimitive->material.texture_width, 0, sizeof(double));
+            cudaMemset(&cudaPrimitive->material.texture_height, 0, sizeof(double));
+        }
+    }
+
+    // Primitive type
+    Cuda_Primitive_Type type;
+    if (dynamic_cast<Sphere*>(currentPrimitive) != nullptr)
+    {
+        Sphere* sphere = dynamic_cast<Sphere*>(currentPrimitive);
+        MEMCPY(&cudaPrimitive->data.sphere.O, &sphere->O, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.sphere.R, &sphere->R, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.sphere.De, &sphere->De, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.sphere.Dc, &sphere->Dc, sizeof(Vector3), cudaMemcpyHostToDevice);
+        type = Cuda_Primitive_Type_Sphere;
+    }
+    else if (dynamic_cast<Plane*>(currentPrimitive) != nullptr)
+    {
+        Plane* plane = dynamic_cast<Plane*>(currentPrimitive);
+        MEMCPY(&cudaPrimitive->data.plane.N, &plane->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.plane.R, &plane->R, sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.plane.Dx, &plane->Dx, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.plane.Dy, &plane->Dy, sizeof(Vector3), cudaMemcpyHostToDevice);
+        type = Cuda_Primitive_Type_Plane;
+    }
+    else if (dynamic_cast<Square*>(currentPrimitive) != nullptr)
+    {
+        Square* square = dynamic_cast<Square*>(currentPrimitive);
+        MEMCPY(&cudaPrimitive->data.square.O, &square->O, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.square.Dx, &square->Dx, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.square.Dy, &square->Dy, sizeof(Vector3), cudaMemcpyHostToDevice);
+        type = Cuda_Primitive_Type_Square;
+    }
+    else if (dynamic_cast<Cylinder*>(currentPrimitive) != nullptr)
+    {
+        Cylinder* cylinder = dynamic_cast<Cylinder*>(currentPrimitive);
+        MEMCPY(&cudaPrimitive->data.cylinder.O1, &cylinder->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.cylinder.O2, &cylinder->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.cylinder.R, &cylinder->R, sizeof(double), cudaMemcpyHostToDevice);
+        type = Cuda_Primitive_Type_Cylinder;
+    }
+    else if (dynamic_cast<Bezier*>(currentPrimitive) != nullptr)
+    {
+        Bezier* bezier = dynamic_cast<Bezier*>(currentPrimitive);
+        MEMCPY(&cudaPrimitive->data.bezier.O1, &bezier->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.O2, &bezier->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.degree, &bezier->degree, sizeof(int), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.N, &bezier->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.Nx, &bezier->Nx, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.Ny, &bezier->Ny, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.R_c, &bezier->R_c, sizeof(double), cudaMemcpyHostToDevice);
+        double* rData = bezier->R.data();
+        double* zData = bezier->Z.data();
+        MEMCPY(&cudaPrimitive->data.bezier.R, rData, (bezier->degree + 1) * sizeof(double), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.bezier.Z, zData, (bezier->degree + 1) * sizeof(double), cudaMemcpyHostToDevice);
+
+        type = Cuda_Primitive_Type_Bezier;
+    }
+    else if (dynamic_cast<Triangle*>(currentPrimitive) != nullptr)
+    {
+        type = Cuda_Primitive_Type_Triangle;
+
+        Triangle* triangle = dynamic_cast<Triangle*>(currentPrimitive);
+        MEMCPY(&cudaPrimitive->data.triangle.O1, &triangle->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.triangle.O2, &triangle->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.triangle.O3, &triangle->O3, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&cudaPrimitive->data.triangle.N, &triangle->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+    }
+    MEMCPY(&cudaPrimitive->type, &type, sizeof(Cuda_Primitive_Type), cudaMemcpyHostToDevice);
+
+    // Link light primitives to their lights
+    Cuda_Light * cudaLights;
+    MEMCPY(&cudaLights, __cudaLights, sizeof(Cuda_Light *), cudaMemcpyDeviceToHost);
+    if (isLightPrimitive) {
+        Light* light = __lights;
+        for (int i = 0; i < __lightCount; ++i) {
+            if (__lights->lightPrimitive == currentPrimitive) {
+                MEMCPY(&cudaLights[i].lightPrimitive, &cudaLights[i], sizeof(Cuda_Light), cudaMemcpyHostToDevice);
+                break;
+            }
+            light = light->next;
+        }
+    }
+
+    return cudaPrimitive;
 }

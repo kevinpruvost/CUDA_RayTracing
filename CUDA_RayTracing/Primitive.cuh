@@ -92,6 +92,15 @@ struct Cuda_Primitive {
     Cuda_Primitive_Data data;    // Data for the primitive
 };
 
+struct Cuda_BVH
+{
+    Cuda_BVH* left;
+    Cuda_BVH* right;
+    double3 min;
+    double3 max;
+    Cuda_Primitive* primitive;
+};
+
 #define BIG_DIST 1e100
 
 struct Cuda_Collision {

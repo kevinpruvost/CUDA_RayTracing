@@ -27,6 +27,7 @@ Renderer::Renderer(int width, int height, const std::string& scene)
     , m_surfaceContainer(nullptr)
     , outputName{ "output.bmp" }
     , generateOneImage{false}
+    , m_bvh(nullptr)
 {
     LoadScene(scenePath);
     frameTimes.resize(maxFrames, 0.0f);

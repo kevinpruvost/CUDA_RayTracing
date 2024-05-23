@@ -6,7 +6,7 @@
 
 struct BVH_Node
 {
-    BVH_Node() : left{ nullptr }, right{ nullptr } {}
+    BVH_Node() : left{ nullptr }, right{ nullptr }, primitive{ nullptr } {}
 
     BVH_Node * left;
     BVH_Node * right;
@@ -23,11 +23,18 @@ public:
 
     void Build(Raytracer & raytracer);
     void Free();
-    void FreeOnCUDA();
-    void LoadOnCUDA();
+    Cuda_BVH * LoadOnCUDA(BVH_Node * r);
+    Cuda_BVH* LoadOnCUDA(Light* lights, Cuda_Light ** cudaLights, int lightCount);
+
+    Cuda_Primitive * AllocateCudaPrimitive(Primitive* prim);
 
 public:
-    BVH_Node* root;
+    Light* __lights;
+    Cuda_Light ** __cudaLights;
+    int __lightCount;
+
+    BVH_Node* _root;
     Cuda_BVH* cuda_root;
 };
 
+void FreeBVHOnCUDA(Cuda_BVH* node);

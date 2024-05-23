@@ -39,7 +39,7 @@ __device__ double3 CalnDiffusion(Cuda_Scene* scene, Cuda_Collision* collide_prim
 
     for (int i = 0; i < scene->lightCount; ++i) {
         Cuda_Light* light = &scene->lights[i];
-        double shade = CalnShade(collide_primitive->C, primitive, light, scene->primitives, scene->primitiveCount, int(16 * scene->camera.shade_quality));
+        double shade = CalnShade(collide_primitive->C, primitive, light, scene->bvh, int(16 * scene->camera.shade_quality));
         if (shade < 1e-6) {
             continue;
         }
@@ -76,13 +76,6 @@ __device__ double3 CalnReflection(Cuda_Scene* scene, Cuda_Collision* collide_pri
     }
     // diffuse reflection (fuzzy reflection)
     else {
-        // TODO: NEED TO IMPLEMENT
-
-        // Unit *circle* perpendicular to ray_V.
-        // This is different from sampling from a unit sphere -- when projecting the sphere
-        // to this circle the points are not uniformly distributed.
-        // However, considering the ExpBlur, this approximation may be justified.
-
         double3 baseX = GetAnVerticalVector(ray_V);
         double3 baseY = normalize(cross(ray_V, baseX));
 

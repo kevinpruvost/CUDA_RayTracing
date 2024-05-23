@@ -10,6 +10,7 @@
 #include "Scene.cuh"
 #include <memory>
 #include "BmpSave.h"
+#include "BVH.h"
 
 #define MALLOC(ptr, size) assert(cudaMalloc(ptr, size) == cudaSuccess)
 #define FREE(ptr) assert(cudaFree(ptr) == cudaSuccess)
@@ -47,7 +48,7 @@ public:
     SettingsContainer(Settings * settings) : m_settings(settings) {
     }
     ~SettingsContainer() {
-        FREE(m_settings);
+        //if (m_settings) FREE(m_settings);
     }
     Settings * m_settings;
 };
@@ -95,6 +96,8 @@ private:
     bool generateOneImage;
     int x_progress;
     int y_progress;
+
+    std::unique_ptr<BVH> m_bvh;
 
     Settings settings;
 

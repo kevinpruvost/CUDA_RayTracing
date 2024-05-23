@@ -80,11 +80,11 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
 
     Primitive * currentPrimitive = primitives;
     int i = 0;
-    while (currentPrimitive != nullptr) {
+    while (currentPrimitive != nullptr)
+    {
         // Primitive properties
         bool isLightPrimitive = currentPrimitive->IsLightPrimitive();
         MEMCPY(&cudaPrimitives[i].isLightPrimitive, &isLightPrimitive, sizeof(bool), cudaMemcpyHostToDevice);
-
         // Material
         {
             //struct Cuda_Material
@@ -204,38 +204,38 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
 #include <unordered_map>
 
 void LinkPrimitivesToLight(Cuda_Scene* scene, Primitive* primHead, Light* lightHead) {
-    int primCount, lightCount;
-    MEMCPY(&primCount, &scene->primitiveCount, sizeof(int), cudaMemcpyDeviceToHost);
-    MEMCPY(&lightCount, &scene->lightCount, sizeof(int), cudaMemcpyDeviceToHost);
+    //int primCount, lightCount;
+    //MEMCPY(&primCount, &scene->primitiveCount, sizeof(int), cudaMemcpyDeviceToHost);
+    //MEMCPY(&lightCount, &scene->lightCount, sizeof(int), cudaMemcpyDeviceToHost);
 
-    Cuda_Primitive* cudaPrimitives;
-    Cuda_Light* cudaLights;
-    MEMCPY(&cudaPrimitives, &scene->primitives, sizeof(Cuda_Primitive*), cudaMemcpyDeviceToHost);
-    MEMCPY(&cudaLights, &scene->lights, sizeof(Cuda_Light*), cudaMemcpyDeviceToHost);
+    //Cuda_BVH* cudaPrimitives;
+    //Cuda_Light* cudaLights;
+    //MEMCPY(&cudaPrimitives, &scene->bvh, sizeof(Cuda_BVH*), cudaMemcpyDeviceToHost);
+    //MEMCPY(&cudaLights, &scene->lights, sizeof(Cuda_Light*), cudaMemcpyDeviceToHost);
 
-    // Create a map from CPU primitive pointers to GPU primitive pointers
-    std::unordered_map<Primitive*, Cuda_Primitive*> primMap;
-    Primitive* currentPrim = primHead;
-    for (int i = 0; i < primCount; ++i) {
-        primMap[currentPrim] = &cudaPrimitives[i];
-        currentPrim = currentPrim->GetNext();
-    }
+    //// Create a map from CPU primitive pointers to GPU primitive pointers
+    //std::unordered_map<Primitive*, Cuda_Primitive*> primMap;
+    //Primitive* currentPrim = primHead;
+    //for (int i = 0; i < primCount; ++i) {
+    //    primMap[currentPrim] = &cudaPrimitives[i];
+    //    currentPrim = currentPrim->GetNext();
+    //}
 
-    // Link light primitives
-    Light* currentLight = lightHead;
-    for (int j = 0; j < lightCount; ++j) {
-        if (currentLight->lightPrimitive) {
-            Primitive* lightPrimitive = currentLight->lightPrimitive;
-            if (primMap.find(lightPrimitive) != primMap.end()) {
-                Cuda_Primitive* cudaLightPrimitive = primMap[lightPrimitive];
-                MEMCPY(&cudaLights[j].lightPrimitive, &cudaLightPrimitive, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
-            }
-        }
-        currentLight = currentLight->GetNext();
-    }
+    //// Link light primitives
+    //Light* currentLight = lightHead;
+    //for (int j = 0; j < lightCount; ++j) {
+    //    if (currentLight->lightPrimitive) {
+    //        Primitive* lightPrimitive = currentLight->lightPrimitive;
+    //        if (primMap.find(lightPrimitive) != primMap.end()) {
+    //            Cuda_Primitive* cudaLightPrimitive = primMap[lightPrimitive];
+    //            MEMCPY(&cudaLights[j].lightPrimitive, &cudaLightPrimitive, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
+    //        }
+    //    }
+    //    currentLight = currentLight->GetNext();
+    //}
 }
 
-Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int height)
+Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int height, BVH * bvh)
 {
     Cuda_Scene * scene = nullptr;
     MALLOC(&scene, sizeof(Cuda_Scene));
@@ -255,9 +255,14 @@ Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int hei
 
     // Primitives
     int primitiveCount;
-    Cuda_Primitive * primitives = createCudaPrimitivesFromCPUPrimitives(sceneCpu->scene.primitive_head, &primitiveCount);
-    MEMCPY(&(scene->primitives), &primitives, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
+    //Cuda_Primitive * primitives = createCudaPrimitivesFromCPUPrimitives(sceneCpu->scene.primitive_head, &primitiveCount);
+    //MEMCPY(&(scene->primitives), &primitives, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
     MEMCPY(&(scene->primitiveCount), &primitiveCount, sizeof(int), cudaMemcpyHostToDevice);
+    if (lightCount != 0)
+    {
+        Cuda_BVH* cuda_bvh = bvh->LoadOnCUDA(sceneCpu->light_head, &scene->lights, lightCount);
+        MEMCPY(&(scene->bvh), &cuda_bvh, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
+    }
 
     // Link Primitives to Lights
     LinkPrimitivesToLight(scene, sceneCpu->scene.primitive_head, sceneCpu->light_head);
@@ -282,8 +287,11 @@ void FreeCudaScene(Cuda_Scene* cudaScene)
     // Free random seeds
     FREE(scene_freer.seeds);
 
+    // Free BVH
+    if (scene_freer.bvh) FreeBVHOnCUDA(scene_freer.bvh);
+
     // Free primitives
-    FREE(scene_freer.primitives);
+    //FREE(scene_freer.primitives);
 
     // Free Lights
     FREE(scene_freer.lights);
@@ -333,7 +341,8 @@ void Renderer::ResetSceneInfos()
 {
     m_surfaceContainer.reset(new SurfaceContainer(textureArray));
 
-    m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height)));
+    m_bvh.reset(new BVH(raytracer));
+    m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height, m_bvh.get())));
     cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
 }
 

@@ -131,14 +131,21 @@ public:
 class PlaneAreaLightPrimitive : public Square {
 public:
     explicit PlaneAreaLightPrimitive(Vector3 pO, Vector3 pDx, Vector3 pDy, Color color): Square()
-    {O = pO; Dx = pDx; Dy = pDy; material->color = color; }
+    {O = pO; Dx = pDx; Dy = pDy; material->color = color;
+        min = O - Dx - Dy; max = O + Dx + Dy; centroid = O;
+    }
     virtual bool IsLightPrimitive() const { return true; }
 };
 
 class SphereAreaLightPrimitive : public Sphere {
 public:
     explicit SphereAreaLightPrimitive(Vector3 pO, double pR, Color color) : Sphere()
-    {O = pO; R = pR; material->color = color; }
+    {
+        O = pO; R = pR; material->color = color;
+        min = O - Vector3(R, R, R);
+        max = O + Vector3(R, R, R);
+        centroid = O;
+    }
     virtual bool IsLightPrimitive() const { return true; }
 };
 

@@ -20,10 +20,11 @@ __device__ double3 GetRandPointLightSphere(double3 C, Cuda_Light* light)
     return light->O + light->R * make_double3(x, y, z);
 }
 
-__device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_Light* light, Cuda_Primitive* primitives, int primitivesCount, int shade_quality)
+__device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_Light* light, Cuda_BVH* bvh, int shade_quality)
 {
     double shade = 0.0f;
 
+    Cuda_Primitive* ignorePrimitives[2] = { crashed_Primitive, nullptr };
     switch (light->type)
     {
     case Cuda_Light_Type_Point:
@@ -33,23 +34,15 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
         double dist = length(V);
 
         // if light ray collide any object, light source produce no shade to diffuse light
-        for (int i = 0; i < primitivesCount; ++i)
-        {
-            if (&primitives[i] == crashed_Primitive) continue;
-            Cuda_Primitive* primitive = &primitives[i];
-            Cuda_Collision tmp = InitCudaCollision();
-            intersect(primitive, &C, &V, &tmp);
-            if (dist - tmp.dist > 1e-6)
-            {
-                return 0.0f;
-            }
-        }
+        Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives);
+        if (tmp.isCollide) return 0.0f;
 
         shade = 1.0f;
         break;
     }
     case Cuda_Light_Type_Square:
     {
+        ignorePrimitives[1] = light->lightPrimitive;
         for (int i = 0; i < shade_quality; i++)
         {
             // sample a point light from light primitive
@@ -60,19 +53,11 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
             double dist = length(V);
 
             int addShade = 1;
+
+
             // if light ray collide any object, light source produce no shade to diffuse light
-            for (int j = 0; j < primitivesCount; ++j)
-            {
-                Cuda_Primitive* primitive = &primitives[j];
-                if (primitive == crashed_Primitive || primitive == light->lightPrimitive) continue;
-                Cuda_Collision tmp = InitCudaCollision();
-                intersect(primitive, &C, &V, &tmp);
-                if (dist - tmp.dist > 1e-6)
-                {
-                    addShade = 0;
-                    break;
-                }
-            }
+            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives);
+            if (tmp.isCollide) shade = 0;
             shade += addShade;
         }
         shade /= shade_quality;
@@ -80,6 +65,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
     }
     case Cuda_Light_Type_Sphere:
     {
+        ignorePrimitives[1] = light->lightPrimitive;
         for (int i = 0; i < shade_quality; i++)
         {
             // sample a point light from light primitive
@@ -91,18 +77,8 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
 
             int addShade = 1;
             // if light ray collide any object, light source produce no shade to diffuse light
-            for (int j = 0; j < primitivesCount; ++j)
-            {
-                Cuda_Primitive* primitive = &primitives[j];
-                if (primitive == crashed_Primitive || primitive == light->lightPrimitive) continue;
-                Cuda_Collision tmp = InitCudaCollision();
-                intersect(primitive, &C, &V, &tmp);
-                if (dist - tmp.dist > 1e-6)
-                {
-                    addShade = 0;
-                    break;
-                }
-            }
+            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives);
+            if (tmp.isCollide) shade = 0;
             shade += addShade;
         }
         shade /= shade_quality;
