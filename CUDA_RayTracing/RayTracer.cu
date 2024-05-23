@@ -16,6 +16,12 @@ __device__ double3 normalize(const double3& v) {
 
 __device__ __shared__ curandState globalState[N_BLOCK];
 
+__global__ void initCurand()
+{
+    int idx = threadIdx.x;
+    curand_init(idx, idx, 0, &globalState[idx]);
+}
+
 __global__ void initCurand(unsigned long * seed)
 {
     int idx = threadIdx.x;
@@ -44,6 +50,12 @@ __device__ float frand()
 //    return lerp({ 1.0f, 1.0f, 1.0f }, { 0.5f, 0.7f, 1.0f }, t);
 //}
 
+__device__ int CountBvh(Cuda_BVH* node)
+{
+    if (node == 0) return 0;
+    return ((node->primitive) ? 1 : 0) + CountBvh(node->left) + CountBvh(node->right);
+}
+
 __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int x_progress, int y_progress, Settings * settings)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -55,6 +67,9 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int heigh
 
     x += x_progress;
     y += y_progress;
+
+    //int bvh_size = CountBvh(scene->bvh);
+
 
     double3 color = make_double3(0.0f, 0.0f, 0.0f);
     if (settings->resampling_size == 1)
@@ -98,14 +113,18 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int heigh
 // Wrapper function to launch the kernel
 void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene * scene, int x_progress, int y_progress, Settings * settings)
 {
+    size_t freeMemStart, totalMemStart;
+
+    // Get initial memory information
+    cudaMemGetInfo(&freeMemStart, &totalMemStart);
     // Define block and grid sizes
     dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 blocksPerGrid((width + threadsPerBlock.x - 1) / threadsPerBlock.x, (height + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     // Launch the kernel
-    unsigned long* seeds;
-    cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
-    initCurand << <blocksPerGrid, threadsPerBlock >> > (seeds);
+    //unsigned long* seeds;
+    //cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
+    initCurand << <blocksPerGrid, threadsPerBlock >> > ();
     cudaDeviceSynchronize();
     rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, width, height, scene, x_progress, y_progress, settings);
 

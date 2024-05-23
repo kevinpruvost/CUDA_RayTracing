@@ -48,7 +48,7 @@ public:
     SettingsContainer(Settings * settings) : m_settings(settings) {
     }
     ~SettingsContainer() {
-        //if (m_settings) FREE(m_settings);
+        if (m_settings) FREE(m_settings);
     }
     Settings * m_settings;
 };

@@ -144,22 +144,31 @@ void FreeBVHOnCUDA(Cuda_BVH* node)
 {
     if (!node) return;
 
-    if (node->left)
+    Cuda_BVH* otherNode;
+    MEMCPY(&otherNode, &node->left, sizeof(Cuda_BVH*), cudaMemcpyDeviceToHost);
+    if (otherNode)
     {
-        FreeBVHOnCUDA(node->left);
-        FREE(node->left);
+        FreeBVHOnCUDA(otherNode);
     }
-    if (node->right)
+    Cuda_BVH* otherNode2;
+    MEMCPY(&otherNode2, &node->right, sizeof(Cuda_BVH*), cudaMemcpyDeviceToHost);
+    if (otherNode2)
     {
-        FreeBVHOnCUDA(node->right);
-        FREE(node->right);
+        FreeBVHOnCUDA(otherNode2);
     }
-    if (node->primitive)
+    double3 min, max;
+    MEMCPY(&min, &node->min, sizeof(double3), cudaMemcpyDeviceToHost);
+    MEMCPY(&max, &node->max, sizeof(double3), cudaMemcpyDeviceToHost);
+    Cuda_Primitive* prim;
+    MEMCPY(&prim, &node->primitive, sizeof(Cuda_Primitive*), cudaMemcpyDeviceToHost);
+    if (prim)
     {
-        FREE(node->primitive->material.texture);
-        FREE(node->primitive);
+        Cuda_Primitive data;
+        MEMCPY(&data, prim, sizeof(Cuda_Primitive), cudaMemcpyDeviceToHost);
+        if (data.material.texture) FREE(data.material.texture);
+        FREE(prim);
     }
-    delete node;
+    FREE(node);
 }
 
 Cuda_BVH * BVH::LoadOnCUDA(BVH_Node * root)
@@ -182,7 +191,7 @@ Cuda_BVH * BVH::LoadOnCUDA(BVH_Node * root)
     MEMCPY(&cuda_root->min, &root->min, sizeof(double3), cudaMemcpyHostToDevice);
     MEMCPY(&cuda_root->max, &root->max, sizeof(double3), cudaMemcpyHostToDevice);
     
-    Cuda_Primitive * primitive = nullptr;
+    Cuda_Primitive * primitive = 0;
     if (root->primitive) {
         primitive = AllocateCudaPrimitive(root->primitive);
     }

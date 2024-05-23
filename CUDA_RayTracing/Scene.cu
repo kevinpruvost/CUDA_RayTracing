@@ -57,11 +57,12 @@ __device__ bool intersectAABB(const double3& origin, const double3& direction, c
 
 __device__ bool traverseBVH(const double3 * origin, const double3 * direction, const Cuda_BVH * node, Cuda_Collision * collision, Cuda_Primitive * ignorePrimitive, Cuda_Primitive * ignorePrimitive2)
 {
+    return false;
     if (node == nullptr) return false;
     if (!intersectAABB(*origin, *direction, node->min, node->max))
         return false;
 
-    bool ignore = node->primitive == nullptr;// || ignorePrimitive == node->primitive || ignorePrimitive2 == node->primitive;
+    bool ignore = node->primitive == 0 || ignorePrimitive == node->primitive || ignorePrimitive2 == node->primitive;
     if (ignore)
     {
         Cuda_Collision temp_collision = InitCudaCollision();
@@ -74,9 +75,9 @@ __device__ bool traverseBVH(const double3 * origin, const double3 * direction, c
     }
     else
     {
-        //bool hit_left = traverseBVH(origin, direction, node->left, collision, ignorePrimitive, ignorePrimitive2);
-        //bool hit_right = traverseBVH(origin, direction, node->right, collision, ignorePrimitive, ignorePrimitive2);
-        //return hit_left || hit_right;
+        bool hit_left = traverseBVH(origin, direction, node->left, collision, ignorePrimitive, ignorePrimitive2);
+        bool hit_right = traverseBVH(origin, direction, node->right, collision, ignorePrimitive, ignorePrimitive2);
+        return hit_left || hit_right;
     }
     return false;
 }
@@ -110,14 +111,14 @@ __device__ Cuda_Collision intersect(Cuda_BVH * bvh, const double3* origin, const
 
 __device__ const int max_depth = 10;
 
-__device__ double3 traceRay(Cuda_Scene* scene, double3 origin, double3 direction, int depth)
+__device__ double3 traceRay(Cuda_Scene* scene, const double3 & origin, const double3 & direction, int depth)
 {
     double3 color = make_double3(0.0f, 0.0f, 0.0f);
 
     if (depth > max_depth) return color;
 
-    Cuda_Collision collision;
-    collision = intersect(scene->bvh, &origin, &direction, nullptr, nullptr);
+    Cuda_Collision collision = InitCudaCollision();
+    collision = intersect(scene->bvh, &origin, &direction, 0, 0);
     if (collision.isCollide)
     {
         Cuda_Primitive * prim = collision.collide_primitive;

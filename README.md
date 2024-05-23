@@ -22,3 +22,5 @@ Personal Project on implementing Ray Tracing with CUDA, visualizable on an OpenG
 - For projects like this, where a lot of data might be created, we have to manage stack size limit (`        cudaDeviceSetLimit(cudaLimitStackSize, N)`).
 
 - Be careful with the random seed generation also, and give different seeds to each device.
+
+- Stack size on device has a huge impact on performance, be careful.

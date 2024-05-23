@@ -27,13 +27,12 @@ struct Cuda_Scene
     Cuda_Light* lights;
     int lightCount;
     Cuda_BVH* bvh;
-//    Cuda_Primitive * primitives;
+    Cuda_Primitive * primitives;
     int primitiveCount;
-    unsigned long * seeds;
 };
 
 __device__ bool traversBVH(Cuda_BVH * node, const double3 * origin, const double3 * direction, Cuda_Collision * collision);
-__device__ double3 traceRay(Cuda_Scene * scene, double3 origin, double3 direction, int depth);
+__device__ double3 traceRay(Cuda_Scene * scene, const double3 & origin, const double3 & direction, int depth);
 __device__ double2 GetBlur();
 __device__ double3 CalnDiffusion(Cuda_Scene* scene, Cuda_Collision* collide_primitive);
 __device__ double3 CalnReflection(Cuda_Scene * scene, Cuda_Collision * collide_primitive, double3 ray_V, int dep);
