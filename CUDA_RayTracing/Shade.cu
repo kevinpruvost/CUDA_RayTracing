@@ -1,11 +1,11 @@
 #include "Light.cuh"
 
-__device__ double3 GetRandPointLight(double3 C, Cuda_Light* light)
+__device__ double3 GetRandPointLight(const Cuda_Light* light)
 {
     return light->O + light->Dx * (2 * frand() - 1.0) + light->Dy * (2 * frand() - 1.0);
 }
 
-__device__ double3 GetRandPointLightSphere(double3 C, Cuda_Light* light)
+__device__ double3 GetRandPointLightSphere(const double3 & C, Cuda_Light* light)
 {
     // Randomly sample spherical coordinates
     double z = 2.0 * frand() - 1.0;  // Random z in range [-1, 1]
@@ -20,7 +20,7 @@ __device__ double3 GetRandPointLightSphere(double3 C, Cuda_Light* light)
     return light->O + light->R * make_double3(x, y, z);
 }
 
-__device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_Light* light, Cuda_BVH* bvh, int shade_quality)
+__device__ double CalnShade(const double3 & C, Cuda_Primitive * crashed_Primitive, Cuda_Light* light, Cuda_BVH* bvh, int shade_quality)
 {
     double shade = 0.0f;
 
@@ -34,7 +34,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
         double dist = length(V);
 
         // if light ray collide any object, light source produce no shade to diffuse light
-        Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives);
+        Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1]);
         if (tmp.isCollide) return 0.0f;
 
         shade = 1.0f;
@@ -46,7 +46,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
         for (int i = 0; i < shade_quality; i++)
         {
             // sample a point light from light primitive
-            double3 randO = GetRandPointLight(C, light);
+            double3 randO = GetRandPointLight(light);
 
             // light ray from diffuse point to point light
             double3 V = randO - C;
@@ -56,7 +56,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
 
 
             // if light ray collide any object, light source produce no shade to diffuse light
-            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives);
+            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1]);
             if (tmp.isCollide) shade = 0;
             shade += addShade;
         }
@@ -77,7 +77,7 @@ __device__ double CalnShade(double3 C, Cuda_Primitive * crashed_Primitive, Cuda_
 
             int addShade = 1;
             // if light ray collide any object, light source produce no shade to diffuse light
-            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives);
+            Cuda_Collision tmp = intersect(bvh, &C, &V, ignorePrimitives[0], ignorePrimitives[1]);
             if (tmp.isCollide) shade = 0;
             shade += addShade;
         }

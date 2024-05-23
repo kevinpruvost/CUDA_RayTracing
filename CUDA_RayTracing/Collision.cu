@@ -148,7 +148,7 @@ __device__ bool TriangleIntersect(const Cuda_Triangle* triangle, const double3* 
         return false;
 }
 
-__device__ bool intersect(Cuda_Primitive* primitive, const double3 * origin, const double3 * direction, Cuda_Collision* collision)
+__device__ bool intersect_primitives(Cuda_Primitive* primitive, const double3 * origin, const double3 * direction, Cuda_Collision* collision)
 {
     switch (primitive->type)
     {

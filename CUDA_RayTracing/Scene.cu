@@ -1,39 +1,71 @@
 #include "Scene.cuh"
 
 __device__ bool intersectAABB(const double3& origin, const double3& direction, const double3& aabb_min, const double3& aabb_max) {
-    double3 invDir = 1.0 / direction;
+    double tmin = (aabb_min.x - origin.x) / direction.x;
+    double tmax = (aabb_max.x - origin.x) / direction.x;
 
-    double3 t0s = (aabb_min - origin) * invDir;
-    double3 t1s = (aabb_max - origin) * invDir;
-
-    double3 tsmaller = fmin(t0s, t1s);
-    double3 tbigger = fmax(t0s, t1s);
-
-    double tmin = fmax(fmax(tsmaller.x, tsmaller.y), tsmaller.z);
-    double tmax = fmin(fmin(tbigger.x, tbigger.y), tbigger.z);
-
-    return tmax >= tmin;
-}
-
-__device__ bool traverseBVH(const double3 * origin, const double3 * direction, const Cuda_BVH * node, Cuda_Collision * collision, Cuda_Primitive ** ignorePrimitive)
-{
-    if (node == nullptr) return false;
-    if (!intersectAABB(*origin, *direction, node->min, node->max)) return false;
-
-    bool ignore = false;
-    for (int i = 0; i < 2 && ignorePrimitive != nullptr; i++)
-    {
-        if (ignorePrimitive[i] == node->primitive)
-        {
-            ignore = true;
-            break;
-        }
+    if (tmin > tmax) {
+        double temp = tmin;
+        tmin = tmax;
+        tmax = temp;
     }
 
-    if (node->primitive != nullptr || ignore)
+    double tymin = (aabb_min.y - origin.y) / direction.y;
+    double tymax = (aabb_max.y - origin.y) / direction.y;
+
+    if (tymin > tymax) {
+        double temp = tymin;
+        tymin = tymax;
+        tymax = temp;
+    }
+
+    if ((tmin > tymax) || (tymin > tmax)) {
+        return false;
+    }
+
+    if (tymin > tmin) {
+        tmin = tymin;
+    }
+
+    if (tymax < tmax) {
+        tmax = tymax;
+    }
+
+    double tzmin = (aabb_min.z - origin.z) / direction.z;
+    double tzmax = (aabb_max.z - origin.z) / direction.z;
+
+    if (tzmin > tzmax) {
+        double temp = tzmin;
+        tzmin = tzmax;
+        tzmax = temp;
+    }
+
+    if ((tmin > tzmax) || (tzmin > tmax)) {
+        return false;
+    }
+
+    if (tzmin > tmin) {
+        tmin = tzmin;
+    }
+
+    if (tzmax < tmax) {
+        tmax = tzmax;
+    }
+
+    return true;
+}
+
+__device__ bool traverseBVH(const double3 * origin, const double3 * direction, const Cuda_BVH * node, Cuda_Collision * collision, Cuda_Primitive * ignorePrimitive, Cuda_Primitive * ignorePrimitive2)
+{
+    if (node == nullptr) return false;
+    if (!intersectAABB(*origin, *direction, node->min, node->max))
+        return false;
+
+    bool ignore = node->primitive == nullptr;// || ignorePrimitive == node->primitive || ignorePrimitive2 == node->primitive;
+    if (ignore)
     {
         Cuda_Collision temp_collision = InitCudaCollision();
-        if (intersect(node->primitive, origin, direction, &temp_collision))
+        if (intersect_primitives(node->primitive, origin, direction, &temp_collision))
         {
             if (temp_collision.dist < collision->dist)
                 *collision = temp_collision;
@@ -42,20 +74,17 @@ __device__ bool traverseBVH(const double3 * origin, const double3 * direction, c
     }
     else
     {
-        bool hit_left = traverseBVH(origin, direction, node->left, collision, ignorePrimitive);
-        bool hit_right = traverseBVH(origin, direction, node->right, collision, ignorePrimitive);
-        return hit_left || hit_right;
+        //bool hit_left = traverseBVH(origin, direction, node->left, collision, ignorePrimitive, ignorePrimitive2);
+        //bool hit_right = traverseBVH(origin, direction, node->right, collision, ignorePrimitive, ignorePrimitive2);
+        //return hit_left || hit_right;
     }
     return false;
 }
 
-__device__ Cuda_Collision intersect(Cuda_BVH * bvh, const double3* origin, const double3* direction, Cuda_Primitive ** ignorePrimitive)
+__device__ Cuda_Collision intersect(Cuda_BVH * bvh, const double3* origin, const double3* direction, Cuda_Primitive * ignorePrimitive, Cuda_Primitive * ignorePrimitive2)
 {
     Cuda_Collision collision = InitCudaCollision();
-    Cuda_Collision empty = collision;
-
-    traverseBVH(origin, direction, bvh, &collision, ignorePrimitive);
-
+    traverseBVH(origin, direction, bvh, &collision, ignorePrimitive, ignorePrimitive2);
     return collision;
 }
 
@@ -88,7 +117,7 @@ __device__ double3 traceRay(Cuda_Scene* scene, double3 origin, double3 direction
     if (depth > max_depth) return color;
 
     Cuda_Collision collision;
-    collision = intersect(scene->bvh, &origin, &direction);
+    collision = intersect(scene->bvh, &origin, &direction, nullptr, nullptr);
     if (collision.isCollide)
     {
         Cuda_Primitive * prim = collision.collide_primitive;

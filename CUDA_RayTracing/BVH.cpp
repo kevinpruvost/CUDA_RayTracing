@@ -166,25 +166,21 @@ Cuda_BVH * BVH::LoadOnCUDA(BVH_Node * root)
 {
     Cuda_BVH* cuda_root;
     MALLOC(&cuda_root, sizeof(Cuda_BVH));
+    cudaMemset(cuda_root, 0, sizeof(Cuda_BVH));
 
     Cuda_BVH* new_node;
     if (root->left) {
         new_node = LoadOnCUDA(root->left);
-    } else {
-        new_node = nullptr;
+        MEMCPY(&cuda_root->left, &new_node, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
     }
-    MEMCPY(&cuda_root->left, &new_node, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
 
     if (root->right) {
         new_node = LoadOnCUDA(root->right);
+        MEMCPY(&cuda_root->right, &new_node, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
     }
-    else {
-        new_node = nullptr;
-    }
-    MEMCPY(&cuda_root->right, &new_node, sizeof(Cuda_BVH*), cudaMemcpyHostToDevice);
 
-    MEMCPY(&cuda_root->min, &root->min, sizeof(Vector3), cudaMemcpyHostToDevice);
-    MEMCPY(&cuda_root->max, &root->max, sizeof(Vector3), cudaMemcpyHostToDevice);
+    MEMCPY(&cuda_root->min, &root->min, sizeof(double3), cudaMemcpyHostToDevice);
+    MEMCPY(&cuda_root->max, &root->max, sizeof(double3), cudaMemcpyHostToDevice);
     
     Cuda_Primitive * primitive = nullptr;
     if (root->primitive) {
@@ -200,6 +196,17 @@ Cuda_BVH* BVH::LoadOnCUDA(Light* lights, Cuda_Light ** cudaLights, int lightCoun
     __cudaLights = cudaLights;
     __lightCount = lightCount;
     return LoadOnCUDA(_root);
+}
+
+int Count(BVH_Node* node)
+{
+    if (!node) return 0;
+    return ((node->primitive) ? 1 : 0)+ Count(node->left) + Count(node->right);
+}
+
+int BVH::Size()
+{
+    return Count(_root);
 }
 
 Cuda_Primitive* BVH::AllocateCudaPrimitive(Primitive* currentPrimitive)
@@ -315,6 +322,10 @@ Cuda_Primitive* BVH::AllocateCudaPrimitive(Primitive* currentPrimitive)
         MEMCPY(&cudaPrimitive->data.triangle.O2, &triangle->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
         MEMCPY(&cudaPrimitive->data.triangle.O3, &triangle->O3, sizeof(Vector3), cudaMemcpyHostToDevice);
         MEMCPY(&cudaPrimitive->data.triangle.N, &triangle->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+    }
+    else
+    {
+        assert(false);
     }
     MEMCPY(&cudaPrimitive->type, &type, sizeof(Cuda_Primitive_Type), cudaMemcpyHostToDevice);
 

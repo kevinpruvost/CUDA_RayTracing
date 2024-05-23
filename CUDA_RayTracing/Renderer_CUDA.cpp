@@ -254,7 +254,9 @@ Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int hei
     MEMCPY(&(scene->lightCount), &lightCount, sizeof(int), cudaMemcpyHostToDevice);
 
     // Primitives
-    int primitiveCount;
+    int primitiveCount = 0;
+    for (Primitive* currentPrimitive = sceneCpu->scene.primitive_head; currentPrimitive != nullptr; currentPrimitive = currentPrimitive->GetNext())
+        ++primitiveCount;
     //Cuda_Primitive * primitives = createCudaPrimitivesFromCPUPrimitives(sceneCpu->scene.primitive_head, &primitiveCount);
     //MEMCPY(&(scene->primitives), &primitives, sizeof(Cuda_Primitive*), cudaMemcpyHostToDevice);
     MEMCPY(&(scene->primitiveCount), &primitiveCount, sizeof(int), cudaMemcpyHostToDevice);
@@ -314,6 +316,8 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, 
         m_surfaceContainer.reset(new SurfaceContainer(textureArray));
     }
 
+    int bvhSize = m_bvh->Size();
+
     // Launch the kernel via the wrapper function
     if (firstImage && settings.resampling_size > 8)
     {
@@ -343,7 +347,7 @@ void Renderer::ResetSceneInfos()
 
     m_bvh.reset(new BVH(raytracer));
     m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height, m_bvh.get())));
-    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
+    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 64);
 }
 
 void Renderer::ResetSettings()

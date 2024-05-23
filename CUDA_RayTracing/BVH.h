@@ -25,6 +25,7 @@ public:
     void Free();
     Cuda_BVH * LoadOnCUDA(BVH_Node * r);
     Cuda_BVH* LoadOnCUDA(Light* lights, Cuda_Light ** cudaLights, int lightCount);
+    int Size();
 
     Cuda_Primitive * AllocateCudaPrimitive(Primitive* prim);
 
