@@ -113,19 +113,6 @@ primitive torus
     diff= 0.4
 end
 
-# A cylinder for added geometric complexity
-primitive cylinder
-    O= -50 -50 0
-    N= 0 1 0
-    R= 10
-    H= 50
-    color= 0.6 0.6 0.8
-    refl= 0.3
-    drefl= 0.2
-    spec= 0.4
-    diff= 0.5
-end
-
 # Transparent cube for refractive effects
 primitive cube
     O= 50 100 20

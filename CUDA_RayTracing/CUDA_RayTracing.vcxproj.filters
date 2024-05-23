@@ -142,7 +142,7 @@
     <Text Include="resources\scene4.txt">
       <Filter>Resources</Filter>
     </Text>
-    <Text Include="resources\scene_bezier.txt">
+    <Text Include="resources\scene_stacks.txt">
       <Filter>Resources</Filter>
     </Text>
     <Text Include="resources\scene_mesh1.txt">

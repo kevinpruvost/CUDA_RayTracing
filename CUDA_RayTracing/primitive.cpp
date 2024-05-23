@@ -100,9 +100,23 @@ Sphere::Sphere() : Primitive() {
 
 void Sphere::Input( std::string var , std::stringstream& fin ) {
     if ( var == "O=" ) O.Input( fin );
-    if ( var == "R=" ) fin >> R;
+    if (var == "R=")
+    {
+        fin >> R;
+
+        // AABB for BVH
+        min.x = O.x - R;
+        max.x = O.x + R;
+        min.y = O.y - R;
+        max.y = O.y + R;
+        min.z = O.z - R;
+        max.z = O.z + R;
+    }
     if ( var == "De=" ) De.Input( fin );
-    if ( var == "Dc=" ) Dc.Input( fin );
+    if (var == "Dc=")
+    {
+        Dc.Input(fin);
+    }
     Primitive::Input( var , fin );
 }
 
@@ -152,7 +166,23 @@ void Plane::Input( std::string var , std::stringstream& fin ) {
     if ( var == "N=" ) N.Input( fin );
     if ( var == "R=" ) fin >> R;
     if ( var == "Dx=" ) Dx.Input( fin );
-    if ( var == "Dy=" ) Dy.Input( fin );
+    if (var == "Dy=")
+    {
+        Dy.Input(fin);
+
+        // AABB for BVH
+        Vector3 refPoint = N * R;
+        Vector3 p1 = refPoint + Dx + Dy;
+        Vector3 p2 = refPoint - Dx + Dy;
+        Vector3 p3 = refPoint + Dx - Dy;
+        Vector3 p4 = refPoint - Dx - Dy;
+        min.x = std::min(std::min(std::min(p1.x, p2.x), p3.x), p4.x);
+        max.x = std::max(std::max(std::max(p1.x, p2.x), p3.x), p4.x);
+        min.y = std::min(std::min(std::min(p1.y, p2.y), p3.y), p4.y);
+        max.y = std::max(std::max(std::max(p1.y, p2.y), p3.y), p4.y);
+        min.z = std::min(std::min(std::min(p1.z, p2.z), p3.z), p4.z);
+        max.z = std::max(std::max(std::max(p1.z, p2.z), p3.z), p4.z);
+    }
     Primitive::Input( var , fin );
 }
 
@@ -185,7 +215,18 @@ Color Plane::GetTexture(Vector3 crash_C) {
 void Square::Input( std::string var , std::stringstream& fin ) {
     if ( var == "O=" ) O.Input( fin );
     if ( var == "Dx=" ) Dx.Input( fin );
-    if ( var == "Dy=" ) Dy.Input( fin );
+    if (var == "Dy=")
+    {
+        Dy.Input(fin);
+
+        // AABB for BVH
+        min.x = std::min(O.x, O.x + Dx.x + Dy.x);
+        max.x = std::max(O.x, O.x + Dx.x + Dy.x);
+        min.y = std::min(O.y, O.y + Dx.y + Dy.y);
+        max.y = std::max(O.y, O.y + Dx.y + Dy.y);
+        min.z = std::min(O.z, O.z + Dx.z + Dy.z);
+        max.z = std::max(O.z, O.z + Dx.z + Dy.z);
+    }
     Primitive::Input( var , fin );
 }
 
@@ -237,7 +278,18 @@ Color Square::GetTexture(Vector3 crash_C) {
 void Cylinder::Input( std::string var , std::stringstream& fin ) {
     if ( var == "O1=" ) O1.Input( fin );
     if ( var == "O2=" ) O2.Input( fin );
-    if ( var == "R=" ) fin>>R;
+    if (var == "R=")
+    {
+        fin >> R;
+
+        // AABB for BVH
+        min.x = std::min(O1.x, O2.x) - R;
+        max.x = std::max(O1.x, O2.x) + R;
+        min.y = std::min(O1.y, O2.y) - R;
+        max.y = std::max(O1.y, O2.y) + R;
+        min.z = std::min(O1.z, O2.z) - R;
+        max.z = std::max(O1.z, O2.z) + R;
+    }
     Primitive::Input( var , fin );
 }
 
@@ -276,6 +328,14 @@ void Bezier::Input( std::string var , std::stringstream& fin ) {
         if (newR > R_c) R_c = newR;
         R.push_back(newR);
         Z.push_back(newZ);
+        
+        // AABB for BVH
+        min.x = std::min(O1.x, O2.x) - R_c;
+        max.x = std::max(O1.x, O2.x) + R_c;
+        min.y = std::min(O1.y, O2.y) - R_c;
+        max.y = std::max(O1.y, O2.y) + R_c;
+        min.z = std::min(O1.z, O2.z) - R_c;
+        max.z = std::max(O1.z, O2.z) + R_c;
     }
     Primitive::Input( var , fin );
 }
@@ -327,6 +387,14 @@ void Triangle::Input(std::string var, std::stringstream& fin)
     {
         O3.Input(fin);
         N = ((O2 - O1) * (O3 - O1)).GetUnitVector();
+
+        // AABB for BVH
+        min.x = std::min(std::min(O1.x, O2.x), O3.x);
+        max.x = std::max(std::max(O1.x, O2.x), O3.x);
+        min.y = std::min(std::min(O1.y, O2.y), O3.y);
+        max.y = std::max(std::max(O1.y, O2.y), O3.y);
+        min.z = std::min(std::min(O1.z, O2.z), O3.z);
+        max.z = std::max(std::max(O1.z, O2.z), O3.z);
     }
     Primitive::Input(var, fin);
 }

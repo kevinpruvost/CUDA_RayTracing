@@ -50,6 +50,7 @@ public:
     int sample;
     Material* material;
     Primitive* next;
+    Vector3 min, max;
 
 public:
 
