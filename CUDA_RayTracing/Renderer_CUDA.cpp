@@ -293,12 +293,11 @@ void FreeCudaScene(Cuda_Scene* cudaScene)
 }
 
 // Renderer function to launch the kernel and work with surfaces
-void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, Raytracer * cpuScene)
+void Renderer::launchCudaKernel(cudaArray* textureArray, int texture_width, int texture_height, Raytracer * cpuScene)
 {
-    if (m_sceneContainer.get() == nullptr)
+    if (m_settingsContainer.get() == nullptr)
     {
         ResetSettings();
-        ResetSceneInfos();
     }
 
     if (m_surfaceContainer.get() == nullptr)
@@ -306,26 +305,32 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int width, int height, 
         m_surfaceContainer.reset(new SurfaceContainer(textureArray));
     }
 
+    if (m_sceneContainer.get() == nullptr)
+    {
+        ResetSceneInfos();
+    }
+
     // Launch the kernel via the wrapper function
     if (firstImage && settings.resampling_size > 8)
     {
-        launchRayTraceKernel(m_surfaceContainer->m_surface, width / segmentation, height / segmentation, m_sceneContainer->m_scene, x_progress, y_progress, m_settingsContainer->m_settings);
-        x_progress += width / segmentation;
-        if (x_progress >= width)
+        launchRayTraceKernel(m_surfaceContainer->m_surface, texture_width, texture_height, width, height, m_sceneContainer->m_scene, x_progress, y_progress, texture_width / segmentation, texture_height / segmentation, m_settingsContainer->m_settings);
+        x_progress += texture_width / segmentation;
+        if (x_progress >= texture_width)
         {
             x_progress = 0;
-            y_progress += height / segmentation;
+            y_progress += texture_height / segmentation;
         }
-        if (y_progress >= height)
+        if (y_progress >= texture_height)
         {
             firstImage = false;
             x_progress = 0;
             y_progress = 0;
         }
     }
-    else if (!generateOneImage)
+    else if (!generateOneImage || firstImage)
     {
-        launchRayTraceKernel(m_surfaceContainer->m_surface, width, height, m_sceneContainer->m_scene, 0, 0, m_settingsContainer->m_settings);
+        launchRayTraceKernel(m_surfaceContainer->m_surface, texture_width, texture_height, width, height, m_sceneContainer->m_scene, 0, 0, texture_width, texture_height, m_settingsContainer->m_settings);
+        firstImage = false;
     }
 }
 
@@ -334,7 +339,7 @@ void Renderer::ResetSceneInfos()
     m_surfaceContainer.reset(new SurfaceContainer(textureArray));
 
     m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height)));
-    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
+    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 16);
 }
 
 void Renderer::ResetSettings()
@@ -344,4 +349,5 @@ void Renderer::ResetSettings()
     MALLOC(&dsettings, sizeof(Settings));
     MEMCPY(dsettings, &settings, sizeof(Settings), cudaMemcpyHostToDevice);
     m_settingsContainer.reset(new SettingsContainer(dsettings));
+    m_surfaceContainer.reset(new SurfaceContainer(textureArray));
 }

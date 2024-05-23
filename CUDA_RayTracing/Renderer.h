@@ -54,7 +54,7 @@ public:
 
 class Renderer {
 public:
-    Renderer(int width, int height, const std::string & scene);
+    Renderer(int width, int height, int textureWidth, int textureHeight, const std::string & scene);
     ~Renderer();
     void Render();
 
@@ -66,7 +66,7 @@ private:
     void UnregisterCUDAResources();
     void SetupImGui();
     void SetupQuad();
-    void launchCudaKernel(cudaArray* textureArray, int width, int height, Raytracer * cpuScene);
+    void launchCudaKernel(cudaArray* textureArray, int texture_width, int texture_height, Raytracer * cpuScene);
     void ResetSceneInfos();
     void ResetSettings();
     void LoadScene(const std::string& scenePath);
@@ -79,6 +79,7 @@ private:
     GLuint texture;
     cudaGraphicsResource* cudaTextureResource;
     int width, height;
+    int texture_width, texture_height;
 
     GLuint vao, vbo, ebo;
 

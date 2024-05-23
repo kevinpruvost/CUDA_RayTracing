@@ -4,16 +4,6 @@
 #include <iostream>
 #include "RayTracer.cuh"
 
-// Utility function to normalize a double3
-__device__ double3 normalize(const double3& v) {
-    float len = rsqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-    return {
-        v.x / len,
-        v.y / len,
-        v.z / len
-    };
-}
-
 __device__ __shared__ curandState globalState[N_BLOCK];
 
 __global__ void initCurand(unsigned long * seed)
@@ -44,70 +34,88 @@ __device__ float frand()
 //    return lerp({ 1.0f, 1.0f, 1.0f }, { 0.5f, 0.7f, 1.0f }, t);
 //}
 
-__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene* scene, int x_progress, int y_progress, Settings * settings)
+__device__ double2 randomInUnitDisk() {
+    double2 p;
+    do {
+        p = 2.0 * make_double2(frand(), frand()) - make_double2(1.0, 1.0);
+    } while (dot(p, p) >= 0.5);
+    return p;
+}
+
+__device__ void modifyRayForDepthOfField(double3& origin, double3& direction, double focalDistance, double aperture, Cuda_Camera * camera, const double3 & focal_point)
+{
+    double2 random = make_double2(frand() - 0.5, frand() - 0.5) * aperture / 10.0f;
+    double3 offset = camera->Dx * random.x + camera->Dy * random.y;
+
+    origin += offset;
+    direction = normalize(focal_point - origin);
+}
+
+__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings * settings)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (x >= width || y >= height) {
+    if (x >= width_to_do || y >= height_to_do) {
         return;
     }
 
     x += x_progress;
     y += y_progress;
 
+    int surface_x = x;
+    int surface_y = y;
+
+    x = (double)x / texture_width * scene->camera.W;
+    y = (double)y / texture_height * scene->camera.H;
+
     double3 color = make_double3(0.0f, 0.0f, 0.0f);
+    double3 origin = scene->camera.O;
+    double3 d = normalize(scene->camera.N + scene->camera.Dy * (2 * (double)y / scene->camera.H - 1) + scene->camera.Dx * (2 * (double)x / scene->camera.W - 1));
+    double3 focal_point = origin + settings->depthOfField.focalDistance * d;
+
     if (settings->resampling_size == 1)
     {
-        double3 origin = scene->camera.O;
-        double3 direction = scene->camera.N + scene->camera.Dy * (2 * (double)y / scene->camera.H - 1) + scene->camera.Dx * (2 * (double)x / scene->camera.W - 1);
+        double3 direction = normalize(scene->camera.N + scene->camera.Dy * (2 * (double)y / scene->camera.H - 1) + scene->camera.Dx * (2 * (double)x / scene->camera.W - 1));
+        if (settings->depthOfField.enabled) {
+            modifyRayForDepthOfField(origin, direction, settings->depthOfField.focalDistance, settings->depthOfField.aperture, &scene->camera, focal_point);
+        }
         color = traceRay(scene, origin, direction, 1);
     }
     else {
-        // Normal Tracing
-        //for (int i = -resampling_size / 2; i < resampling_size / 2; ++i) {
-        //    for (int j = -resampling_size / 2; j < resampling_size / 2; ++j) {
-        //        double u = double(x) + ((double)i / (resampling_size));
-        //        double v = double(y) + ((double)j / (resampling_size));
-
-        //        Cuda_Camera* c = &scene->camera;
-        //        double3 origin = c->O;
-        //        // N + Dy * (2 * i / H - 1) + Dx * (2 * j / W - 1)
-        //        double3 direction = c->N + c->Dy * (2 * (double)v / c->H - 1) + c->Dx * (2 * (double)u / c->W - 1);
-
-        //        color += traceRay(scene, origin, direction, 1) / ((resampling_size) * (resampling_size));
-        //    }
-        //}
         // Monte Carlo Ray Tracing
         Cuda_Camera* c = &scene->camera;
-        double3 origin = c->O;
         for (int i = 0; i < settings->resampling_size; ++i) {
             double u = x + (2.0f * frand() - 1.0f);
             double v = y + (2.0f * frand() - 1.0f);
-            double3 direction = c->N + c->Dy * (2 * (double)v / c->H - 1) + c->Dx * (2 * (double)u / c->W - 1);
-            color += traceRay(scene, origin, direction, 1);
+            double3 originD = c->O;
+            double3 direction = normalize(c->N + c->Dy * (2 * (double)v / c->H - 1) + c->Dx * (2 * (double)u / c->W - 1));
+            if (settings->depthOfField.enabled) {
+                modifyRayForDepthOfField(originD, direction, settings->depthOfField.focalDistance, settings->depthOfField.aperture, &scene->camera, focal_point);
+            }
+            color += traceRay(scene, originD, direction, 1);
         }
         color /= settings->resampling_size;
     }
     uchar4 outputColor;
     outputColor = make_uchar4(color.x * 255, color.y * 255, color.z * 255, 255);
 
-    surf2Dwrite(outputColor, surface, x * sizeof(uchar4), y);
+    surf2Dwrite(outputColor, surface, surface_x * sizeof(uchar4), surface_y);
 }
 
 // Wrapper function to launch the kernel
-void launchRayTraceKernel(cudaSurfaceObject_t surface, int width, int height, Cuda_Scene * scene, int x_progress, int y_progress, Settings * settings)
+void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene * scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings * settings)
 {
     // Define block and grid sizes
     dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 blocksPerGrid((width + threadsPerBlock.x - 1) / threadsPerBlock.x, (height + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    dim3 blocksPerGrid((width_to_do + threadsPerBlock.x - 1) / threadsPerBlock.x, (height_to_do + threadsPerBlock.y - 1) / threadsPerBlock.y);
 
     // Launch the kernel
     unsigned long* seeds;
     cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
     initCurand << <blocksPerGrid, threadsPerBlock >> > (seeds);
     cudaDeviceSynchronize();
-    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, width, height, scene, x_progress, y_progress, settings);
+    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, x_progress, y_progress, width_to_do, height_to_do, settings);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();

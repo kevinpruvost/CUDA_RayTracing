@@ -7,7 +7,7 @@
 #include <filesystem>
 #include "raytracer.h"
 
-Renderer::Renderer(int width, int height, const std::string& scene)
+Renderer::Renderer(int width, int height, int tWidth, int tHeight, const std::string& scene)
     : width(width)
     , height(height)
     , window(nullptr)
@@ -27,6 +27,8 @@ Renderer::Renderer(int width, int height, const std::string& scene)
     , m_surfaceContainer(nullptr)
     , outputName{ "output.bmp" }
     , generateOneImage{false}
+    , texture_width{ tWidth }
+    , texture_height{ tHeight }
 {
     LoadScene(scenePath);
     frameTimes.resize(maxFrames, 0.0f);
@@ -50,8 +52,8 @@ void Renderer::LoadScene(const std::string& scene)
     raytracer.SetInput(scene);
     raytracer.CreateAll();
     scenePath = scene;
-    m_sceneContainer.reset(nullptr);
     ResetRendering();
+    ResetSceneInfos();
 }
 
 Renderer::~Renderer()
@@ -109,7 +111,7 @@ void Renderer::CreateTexture()
 {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -133,17 +135,17 @@ void Renderer::UnregisterCUDAResources()
 
 void Renderer::SaveTextureToBMP()
 {
-    std::vector<unsigned char> pixels(width * height * 3);
+    std::vector<unsigned char> pixels(texture_width * texture_height * 3);
     glBindTexture(GL_TEXTURE_2D, texture);
     glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, pixels.data());
     glBindTexture(GL_TEXTURE_2D, 0);
 
     // Reverse pixels
-    std::vector<unsigned char> pixelsReversed(width * height * 3);
+    std::vector<unsigned char> pixelsReversed(texture_width * texture_height * 3);
     for (int i = 0; i < pixels.size(); ++i) {
         pixelsReversed[i] = pixels[pixels.size() - i - 1];
     }
-    BmpSave::SaveBMP(outputName, pixels.data(), width, height);
+    BmpSave::SaveBMP(outputName, pixels.data(), texture_width, texture_height);
 }
 
 void Renderer::SetupQuad()
@@ -273,6 +275,12 @@ void Renderer::GUI()
     // Set output name
     ImGui::InputText("Output Name", outputName.data(), outputName.size());
     ImGui::Checkbox("Generate One Image", &generateOneImage);
+    if (generateOneImage)
+    {
+        int percentage = (double)y_progress / texture_height * segmentation * segmentation + (double)x_progress / texture_width * segmentation;
+        if (firstImage == false) percentage = 100;
+        ImGui::Text("Image Generation: %d%%", percentage);
+    }
 
     ImGui::Separator();
     ImGui::Text("Select Scene:");
@@ -323,7 +331,7 @@ void Renderer::GUI()
             float focalDistance = settings.depthOfField.focalDistance;
             if (ImGui::DragFloat("Focal Distance", &focalDistance, 0.1f, 0.5f, 1000.0f)) {
                 settingsChanged = true;
-                focalDistance = settings.depthOfField.focalDistance;
+                settings.depthOfField.focalDistance = focalDistance;
             }
         }
     }
@@ -338,7 +346,6 @@ void Renderer::ResetRendering()
     firstImage = true;
     x_progress = 0;
     y_progress = 0;
-    m_surfaceContainer.reset(nullptr);
 }
 
 void Renderer::Render()
@@ -346,6 +353,9 @@ void Renderer::Render()
     double lastTime = glfwGetTime();
     long long int frameCount = 0;
     GLuint shaderProgram = createShaderProgram(shaderVert, shaderFrag);
+
+    // Get uniform location for aspect ratio
+    GLuint aspectRatioLoc = glGetUniformLocation(shaderProgram, "aspectRatio");
 
     while (!glfwWindowShouldClose(window))
     {
@@ -375,13 +385,20 @@ void Renderer::Render()
         cudaGraphicsSubResourceGetMappedArray(&textureArray, cudaTextureResource, 0, 0);
 
         // Launch CUDA kernel to write to the texture (pseudo-code, replace with actual kernel call)
-        launchCudaKernel(textureArray, width, height, &raytracer);
+        launchCudaKernel(textureArray, texture_width, texture_height, &raytracer);
 
         cudaGraphicsUnmapResources(1, &cudaTextureResource, 0);
+
+        // Compute aspect ratios
+        float windowAspect = static_cast<float>(width) / height;
+        float textureAspect = static_cast<float>(texture_width) / texture_height;
 
         // Render the texture to the screen
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shaderProgram);
+
+        // Set the aspect ratio uniform
+        glUniform2f(aspectRatioLoc, windowAspect, textureAspect);
 
         glBindTexture(GL_TEXTURE_2D, texture);
 
