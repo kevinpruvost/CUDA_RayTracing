@@ -19,7 +19,7 @@ __device__ bool IntersectBoundingBox(const double3* origin, const double3* direc
 __device__ bool IntersectTriangle(const double3* origin, const double3* direction, const Cuda_Triangle * triangle, Cuda_Collision & tmp)
 {
     if (triangle == nullptr) return false;
-    const double EPSILON = 1e-6;
+    const double EPSILON = 1e-8;
 
     double3 edge1 = triangle->O2 - triangle->O1;
     double3 edge2 = triangle->O3 - triangle->O1;
@@ -44,7 +44,11 @@ __device__ bool IntersectTriangle(const double3* origin, const double3* directio
 
     tmp.isCollide = true;
     tmp.C = *origin + *direction * t0;
-    tmp.N = normalize(cross(edge1, edge2));
+
+    // Correctly compute and normalize the normal
+    double3 normal = normalize(cross(edge1, edge2));
+    tmp.N = (dot(*direction, normal) < 0) ? normal : -normal;
+
     tmp.dist = t0;
 
     return true;
