@@ -2,6 +2,7 @@
 #include <math_functions.h>
 #include <device_launch_parameters.h>
 #include <iostream>
+#include <thread>
 #include "RayTracer.cuh"
 
 __device__ __shared__ curandState globalState[N_BLOCK];
@@ -51,7 +52,7 @@ __device__ void modifyRayForDepthOfField(double3& origin, double3& direction, do
     direction = normalize(focal_point - origin);
 }
 
-__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings * settings)
+__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings * settings, int * progress)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -101,6 +102,10 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, i
     outputColor = make_uchar4(color.x * 255, color.y * 255, color.z * 255, 255);
 
     surf2Dwrite(outputColor, surface, surface_x * sizeof(uchar4), surface_y);
+
+    if (progress) {
+        *progress += 1;
+    }
 }
 
 // Wrapper function to launch the kernel
@@ -115,7 +120,7 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int te
     cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
     initCurand << <blocksPerGrid, threadsPerBlock >> > (seeds);
     cudaDeviceSynchronize();
-    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, x_progress, y_progress, width_to_do, height_to_do, settings);
+    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, x_progress, y_progress, width_to_do, height_to_do, settings, nullptr);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();
@@ -125,4 +130,47 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int te
 
     // Wait for GPU to finish before accessing on host
     cudaDeviceSynchronize();
+}
+
+void printProgress(int textureWidth, int textureHeight, int * progress, bool * done)
+{
+    while (!*done)
+    {
+        std::cout << "Progress: " << *progress << " " << (double)(*progress) / (double)(textureWidth * textureHeight) << "%" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    std::cout << "Completed !" << std::endl;
+}
+
+// Wrapper function to launch the kernel
+void launchRayTraceKernelParallel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, Settings* settings)
+{
+    cudaSetDeviceFlags(cudaDeviceScheduleBlockingSync);
+    // Define block and grid sizes
+    dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 blocksPerGrid((texture_width + threadsPerBlock.x - 1) / threadsPerBlock.x, (texture_height + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    // Launch the kernel
+    unsigned long* seeds;
+    cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
+    initCurand << <blocksPerGrid, threadsPerBlock >> > (seeds);
+    cudaDeviceSynchronize();
+
+    bool done = false;
+    int progress = 0;
+    std::thread progressThread(printProgress, texture_width, texture_height, &progress, &done);
+
+    rayTraceKernel << <blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, 0, 0, texture_width, texture_height, settings, &progress);
+
+    // Ensure kernel launch is successful
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Failed to launch rayTraceKernel (error code %s)!\n", cudaGetErrorString(err));
+    }
+
+    // Wait for GPU to finish before accessing on host
+    cudaDeviceSynchronize();
+
+    done = true;
+    progressThread.join();
 }

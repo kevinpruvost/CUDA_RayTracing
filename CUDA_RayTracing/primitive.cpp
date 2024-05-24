@@ -374,6 +374,8 @@ Color Mesh::GetTexture(Vector3 crash_C)
     return Color();
 }
 
+#include <iomanip>
+
 void Mesh::LoadModel(const std::string& filename)
 {
     // Will only be obj files with stricly vertices and faces
@@ -398,6 +400,7 @@ void Mesh::LoadModel(const std::string& filename)
     while (fgets(line, 256, file))
     {
         std::stringstream ss;
+                
         ss << line;
         std::string type;
         ss >> type;
@@ -452,11 +455,77 @@ void Mesh::LoadModel(const std::string& filename)
             tri.O2 = vertices[face[1]];
             tri.O3 = vertices[face[2]];
             tri.N = ((tri.O2 - tri.O1) * (tri.O3 - tri.O1)).GetUnitVector();
+
+            //Triangle triReverse;
+            //triReverse.O1 = vertices[face[0]];
+            //triReverse.O2 = vertices[face[2]];
+            //triReverse.O3 = vertices[face[1]];
+            //triReverse.N = ((triReverse.O2 - triReverse.O1) * (triReverse.O3 - triReverse.O1)).GetUnitVector();
+            //triangles.push_back(triReverse);
+
             triangles.push_back(tri);
         }
     }
 
     BuildBVH();
+}
+
+int CountTriangles(MeshBoundingBox* node) {
+    if (node == nullptr) {
+        return 0;
+    }
+    if (node->triangle != nullptr) {
+        return 1;
+    }
+    return CountTriangles(node->left) + CountTriangles(node->right);
+}
+
+#include <fstream>
+#include <unordered_map>
+
+void CollectTriangles(MeshBoundingBox* node, std::vector<Triangle*>& triangles) {
+    if (!node) return;
+    if (node->triangle) {
+        triangles.push_back(node->triangle);
+    }
+    else {
+        CollectTriangles(node->left, triangles);
+        CollectTriangles(node->right, triangles);
+    }
+}
+
+void WriteOBJ(const std::string& filename, const std::vector<Triangle*>& triangles) {
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Could not open file " << filename << " for writing." << std::endl;
+        return;
+    }
+
+    std::unordered_map<const Vector3 *, int> vertexMap;
+    int vertexIndex = 1;
+
+    // Write vertices
+    for (const auto& tri : triangles) {
+        if (vertexMap.find(&tri->O1) == vertexMap.end()) {
+            outFile << "v " << tri->O1.x << " " << tri->O1.y << " " << tri->O1.z << "\n";
+            vertexMap[&tri->O1] = vertexIndex++;
+        }
+        if (vertexMap.find(&tri->O2) == vertexMap.end()) {
+            outFile << "v " << tri->O2.x << " " << tri->O2.y << " " << tri->O2.z << "\n";
+            vertexMap[&tri->O2] = vertexIndex++;
+        }
+        if (vertexMap.find(&tri->O3) == vertexMap.end()) {
+            outFile << "v " << tri->O3.x << " " << tri->O3.y << " " << tri->O3.z << "\n";
+            vertexMap[&tri->O3] = vertexIndex++;
+        }
+    }
+
+    // Write faces
+    for (const auto& tri : triangles) {
+        outFile << "f " << vertexMap[&tri->O1] << " " << vertexMap[&tri->O2] << " " << vertexMap[&tri->O3] << "\n";
+    }
+
+    outFile.close();
 }
 
 void Mesh::BuildBVH()
@@ -468,6 +537,16 @@ void Mesh::BuildBVH()
         tris.push_back(&tri);
     }
     root = BuildBVHRecursive(tris, 0);
+
+    // verify number of triangles in root
+    // int numTris = CountTriangles(root);
+    // std::cout << "Number of triangles in root: " << numTris << " vs: " << triangles.size() << std::endl;
+
+        // Rewrite Obj from root to see if everything is still good
+    //std::vector<Triangle*> collectedTriangles;
+    //CollectTriangles(root, collectedTriangles);
+    //WriteOBJ("test.obj", collectedTriangles);
+    
 }
 
 MeshBoundingBox* Mesh::BuildBVHRecursive(std::vector<Triangle*>& tris, int depth) {
@@ -520,16 +599,17 @@ MeshBoundingBox* Mesh::BuildBVHRecursive(std::vector<Triangle*>& tris, int depth
     node->left = BuildBVHRecursive(leftTris, depth + 1);
     node->right = BuildBVHRecursive(rightTris, depth + 1);
 
+    // Update bounding box
     node->min = Vector3(
-        std::min(node->left ? node->left->min.x : std::numeric_limits<float>::max(), node->right ? node->right->min.x : std::numeric_limits<float>::max()),
-        std::min(node->left ? node->left->min.y : std::numeric_limits<float>::max(), node->right ? node->right->min.y : std::numeric_limits<float>::max()),
-        std::min(node->left ? node->left->min.z : std::numeric_limits<float>::max(), node->right ? node->right->min.z : std::numeric_limits<float>::max())
+        std::min(node->left ? node->left->min.x : maxNumericLimit, node->right ? node->right->min.x : maxNumericLimit),
+        std::min(node->left ? node->left->min.y : maxNumericLimit, node->right ? node->right->min.y : maxNumericLimit),
+        std::min(node->left ? node->left->min.z : maxNumericLimit, node->right ? node->right->min.z : maxNumericLimit)
     );
 
     node->max = Vector3(
-        std::max(node->left ? node->left->max.x : -std::numeric_limits<float>::max(), node->right ? node->right->max.x : -std::numeric_limits<float>::max()),
-        std::max(node->left ? node->left->max.y : -std::numeric_limits<float>::max(), node->right ? node->right->max.y : -std::numeric_limits<float>::max()),
-        std::max(node->left ? node->left->max.z : -std::numeric_limits<float>::max(), node->right ? node->right->max.z : -std::numeric_limits<float>::max())
+        std::max(node->left ? node->left->max.x : -maxNumericLimit, node->right ? node->right->max.x : -maxNumericLimit),
+        std::max(node->left ? node->left->max.y : -maxNumericLimit, node->right ? node->right->max.y : -maxNumericLimit),
+        std::max(node->left ? node->left->max.z : -maxNumericLimit, node->right ? node->right->max.z : -maxNumericLimit)
     );
 
     return node;

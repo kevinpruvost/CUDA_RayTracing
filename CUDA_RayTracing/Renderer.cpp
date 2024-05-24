@@ -335,28 +335,25 @@ void Renderer::GUI()
     ImGui::BeginChild("TextureFrame", ImVec2(0, 100), true, ImGuiWindowFlags_NoResize);
     {
         // Define the available resampling sizes
-        static const char* textureSizes[] = { "1024x576", "1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160" };
+        static const char* textureSizes[] = { "1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160" };
         int textureSizeIdx = 0; // Index of the current resampling size
 
         switch (texture_width)
         {
-        case 1024:
+        case 1280:
             textureSizeIdx = 0;
             break;
-        case 1280:
+        case 1600:
             textureSizeIdx = 1;
             break;
-        case 1600:
+        case 1920:
             textureSizeIdx = 2;
             break;
-        case 1920:
+        case 2560:
             textureSizeIdx = 3;
             break;
-        case 2560:
-            textureSizeIdx = 4;
-            break;
         case 3840:
-            textureSizeIdx = 5;
+            textureSizeIdx = 4;
             break;
         }
         // Display combo box to select texture size
@@ -365,26 +362,22 @@ void Renderer::GUI()
             switch (textureSizeIdx)
             {
             case 0:
-                texture_width = 1024;
-                texture_height = 576;
-                break;
-            case 1:
                 texture_width = 1280;
                 texture_height = 720;
                 break;
-            case 2:
+            case 1:
                 texture_width = 1600;
                 texture_height = 900;
                 break;
-            case 3:
+            case 2:
                 texture_width = 1920;
                 texture_height = 1080;
                 break;
-            case 4:
+            case 3:
                 texture_width = 2560;
                 texture_height = 1440;
                 break;
-            case 5:
+            case 4:
                 texture_width = 3840;
                 texture_height = 2160;
                 break;
@@ -396,23 +389,20 @@ void Renderer::GUI()
 
         switch (width)
         {
-        case 1024:
+        case 1280:
             viewportSizeIdx = 0;
             break;
-        case 1280:
+        case 1600:
             viewportSizeIdx = 1;
             break;
-        case 1600:
+        case 1920:
             viewportSizeIdx = 2;
             break;
-        case 1920:
+        case 2560:
             viewportSizeIdx = 3;
             break;
-        case 2560:
-            viewportSizeIdx = 4;
-            break;
         case 3840:
-            viewportSizeIdx = 5;
+            viewportSizeIdx = 4;
             break;
         }
 
@@ -422,21 +412,18 @@ void Renderer::GUI()
             switch (viewportSizeIdx)
             {
             case 0:
-                ModifyViewport(1024, 576);
-                break;
-            case 1:
                 ModifyViewport(1280, 720);
                 break;
-            case 2:
+            case 1:
                 ModifyViewport(1600, 900);
                 break;
-            case 3:
+            case 2:
                 ModifyViewport(1920, 1080);
                 break;
-            case 4:
+            case 3:
                 ModifyViewport(2560, 1440);
                 break;
-            case 5:
+            case 4:
                 ModifyViewport(3840, 2160);
                 break;
             }
@@ -561,4 +548,23 @@ void Renderer::Render()
     }
 
     glDeleteProgram(shaderProgram);
+}
+
+void Renderer::RenderInParallel(const std::string& output, int resampling, double aperture, double focalDistance)
+{
+    // Renders image then saves it to bmp and close program
+    // Map CUDA resource
+    cudaGraphicsMapResources(1, &cudaTextureResource, 0);
+    cudaGraphicsSubResourceGetMappedArray(&textureArray, cudaTextureResource, 0, 0);
+
+    // Launch CUDA kernel to write to the texture (pseudo-code, replace with actual kernel call)
+    settings.resampling_size = resampling;
+    settings.depthOfField.enabled = true;
+    settings.depthOfField.aperture = aperture;
+    settings.depthOfField.focalDistance = focalDistance;
+    outputName = output;
+    launchCudaKernelParallel(textureArray, texture_width, texture_height, &raytracer);
+
+    cudaGraphicsUnmapResources(1, &cudaTextureResource, 0);
+    SaveTextureToBMP();
 }

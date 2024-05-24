@@ -57,6 +57,7 @@ public:
     Renderer(int width, int height, int textureWidth, int textureHeight, const std::string & scene);
     ~Renderer();
     void Render();
+    void RenderInParallel(const std::string& output, int resampling, double aperture, double focalDistance);
 
 private:
     void InitOpenGL();
@@ -67,6 +68,7 @@ private:
     void SetupImGui();
     void SetupQuad();
     void launchCudaKernel(cudaArray* textureArray, int texture_width, int texture_height, Raytracer * cpuScene);
+    void launchCudaKernelParallel(cudaArray* textureArray, int texture_width, int texture_height, Raytracer* cpuScene);
     void ResetSceneInfos();
     void ResetSettings();
     void LoadScene(const std::string& scenePath);

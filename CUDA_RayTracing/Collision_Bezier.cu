@@ -72,7 +72,7 @@
 //            return t;
 //        }
 //        double grad = (DistanceToRay(t + tolerance, controlPoints, degree, rayStart, rayDir) - d) / tolerance;
-//        if (fabs(grad) < 1e-10) {  // Avoid division by zero
+//        if (fabs(grad) < 1e-6) {  // Avoid division by zero
 //            break;
 //        }
 //        t -= d / grad;

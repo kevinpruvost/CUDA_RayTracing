@@ -441,10 +441,31 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int texture_width, int 
     }
 }
 
+// Renderer function to launch the kernel and work with surfaces
+void Renderer::launchCudaKernelParallel(cudaArray* textureArray, int texture_width, int texture_height, Raytracer* cpuScene)
+{
+    if (m_settingsContainer.get() == nullptr)
+    {
+        ResetSettings();
+    }
+
+    if (m_surfaceContainer.get() == nullptr)
+    {
+        m_surfaceContainer.reset(new SurfaceContainer(textureArray));
+    }
+
+    if (m_sceneContainer.get() == nullptr)
+    {
+        ResetSceneInfos();
+    }
+
+    launchRayTraceKernelParallel(m_surfaceContainer->m_surface, texture_width, texture_height, width, height, m_sceneContainer->m_scene, m_settingsContainer->m_settings);
+}
+
 void Renderer::ResetSceneInfos()
 {
     m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height)));
-    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
+    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 16);
 }
 
 void Renderer::ResetSettings()

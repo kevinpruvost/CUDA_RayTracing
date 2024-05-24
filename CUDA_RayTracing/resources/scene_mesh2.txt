@@ -57,10 +57,7 @@ primitive mesh
     scale= 1.7 1.7 1.7
     rotation= 1.6 0 -2
     file= lucy3_tris_smooth_normalized.obj
-    refl= 0.3
-    drefl= 0.15
     color= 1 1 1
-    diff= 0.7
-    spec= 0.1
-    refl= 0
+    diff= 0.8
+    spec= 0.2
 end

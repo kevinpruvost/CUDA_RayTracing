@@ -19,7 +19,7 @@ __device__ bool IntersectBoundingBox(const double3* origin, const double3* direc
 __device__ bool IntersectTriangle(const double3* origin, const double3* direction, const Cuda_Triangle * triangle, Cuda_Collision & tmp)
 {
     if (triangle == nullptr) return false;
-    const double EPSILON = 1e-8;
+    const double EPSILON = 1e-6;
 
     double3 edge1 = triangle->O2 - triangle->O1;
     double3 edge2 = triangle->O3 - triangle->O1;
@@ -45,16 +45,24 @@ __device__ bool IntersectTriangle(const double3* origin, const double3* directio
     tmp.isCollide = true;
     tmp.C = *origin + *direction * t0;
 
-    // Correctly compute and normalize the normal
-    double3 normal = normalize(cross(edge1, edge2));
-    tmp.N = (dot(*direction, normal) < 0) ? normal : -normal;
+    double3 triangleNormal = triangle->N;
+    
+    // Determine if the intersection is in front or behind the triangle based on the normal and the direction
+    if (dot(*direction, triangleNormal) < 0) {
+        tmp.front = true;
+        tmp.N = triangleNormal;
+    }
+    else {
+        tmp.front = false;
+        tmp.N = -triangleNormal;
+    }
 
     tmp.dist = t0;
 
     return true;
 }
 
-__device__ bool MeshIntersect(Cuda_Mesh * mesh, const double3* origin, const double3* direction, Cuda_Collision* collision)
+__device__ bool MeshIntersect(Cuda_Mesh * mesh, const double3* origin, const double3* direction, Cuda_Collision* collision, int depth)
 {
     if (mesh == nullptr) return false;
     Cuda_Collision tmp = InitCudaCollision();
@@ -65,23 +73,13 @@ __device__ bool MeshIntersect(Cuda_Mesh * mesh, const double3* origin, const dou
         return collision->isCollide;
     }
     if (!IntersectBoundingBox(origin, direction, &mesh->min, &mesh->max)) return false;
-
-    bool hit = false;
-    if (mesh->triangle) {
-        hit = IntersectTriangle(origin, direction, mesh->triangle, tmp);
-        if (hit && tmp.dist < collision->dist) {
-            *collision = tmp;
-        }
-    } else {
-        hit = MeshIntersect(mesh->left, origin, direction, collision) || MeshIntersect(mesh->right, origin, direction, collision);
-    }
-    return hit;
+    return MeshIntersect(mesh->left, origin, direction, collision, depth + 1) || MeshIntersect(mesh->right, origin, direction, collision, depth + 1);
 }
 
 __device__ void MeshIntersect(Cuda_Primitive* primitive, const double3* origin, const double3* direction, Cuda_Collision* collision)
 {
     Cuda_Mesh* mesh = &primitive->data.mesh;
-    if (MeshIntersect(mesh, origin, direction, collision))
+    if (MeshIntersect(mesh, origin, direction, collision, 0))
     {
         collision->collide_primitive = primitive;
     }

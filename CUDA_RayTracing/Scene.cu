@@ -27,8 +27,7 @@ __device__ double3 traceRay(Cuda_Scene* scene, double3 origin, double3 direction
 
     if (depth > max_depth) return color;
 
-    Cuda_Collision collision;
-    collision = intersect(scene, &origin, &direction);
+    Cuda_Collision collision = intersect(scene, &origin, &direction);
     if (collision.isCollide)
     {
         Cuda_Primitive * prim = collision.collide_primitive;

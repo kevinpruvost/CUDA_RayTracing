@@ -3,9 +3,9 @@
 int main()
 {
     Renderer renderer(1600, 900,
-        1024, 576,
-        "scene_mesh2.txt"
+        1280, 720,
+        "scene2.txt"
     );
-    renderer.Render();
+    renderer.RenderInParallel("frite_test.bmp", 16, 10, 50);
     return 0;
 }
