@@ -69,7 +69,8 @@ Cuda_Light * createCudaLightsFromCPULights(Light* lights, int * lightCount)
     return cudaLights;
 }
 
-Cuda_Mesh * createCudaMeshFromCPUMesh(MeshBoundingBox * mesh)
+static int maxDepth = 0;
+Cuda_Mesh * createCudaMeshFromCPUMesh(MeshBoundingBox * mesh, int depth)
 {
     if (mesh == nullptr) return nullptr;
     Cuda_Mesh* cudaMesh = nullptr;
@@ -89,11 +90,16 @@ Cuda_Mesh * createCudaMeshFromCPUMesh(MeshBoundingBox * mesh)
 
     Cuda_Mesh* left = nullptr, * right = nullptr;
     if (mesh->left)
-        left = createCudaMeshFromCPUMesh(mesh->left);
+        left = createCudaMeshFromCPUMesh(mesh->left, depth + 1);
     if (mesh->right)
-        right = createCudaMeshFromCPUMesh(mesh->right);
+        right = createCudaMeshFromCPUMesh(mesh->right, depth + 1);
     MEMCPY(&cudaMesh->left, &left, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
     MEMCPY(&cudaMesh->right, &right, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
+    if (depth > maxDepth)
+    {
+        maxDepth = depth;
+        printf("Max Mesh Depth: %d\n", depth);
+    }
     return cudaMesh;
 }
 
@@ -240,9 +246,9 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
             
             Cuda_Mesh* left = nullptr, * right = nullptr;
             if (root->left)
-                left = createCudaMeshFromCPUMesh(root->left);
+                left = createCudaMeshFromCPUMesh(root->left, 1);
             if (root->right)
-                right = createCudaMeshFromCPUMesh(root->right);
+                right = createCudaMeshFromCPUMesh(root->right, 1);
             MEMCPY(&cudaPrimitives[i].data.mesh.left, &left, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.mesh.right, &right, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
         }

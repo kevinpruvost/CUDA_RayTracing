@@ -184,6 +184,7 @@
     <ClCompile Include="vector3.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\lib\cuda_common\helper_math.h" />
     <ClInclude Include="bmp.h" />
     <ClInclude Include="BmpSave.h" />
     <ClInclude Include="Camera.cuh" />
@@ -212,6 +213,7 @@
   <ItemGroup>
     <CudaCompile Include="Collision.cu" />
     <CudaCompile Include="Collision_Bezier.cu" />
+    <CudaCompile Include="Collision_Mesh.cu" />
     <CudaCompile Include="Primitive.cu" />
     <CudaCompile Include="RayTracer.cu" />
     <CudaCompile Include="Scene_Material.cu" />

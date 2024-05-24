@@ -73,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="RayTracer.cuh" />
     <ClInclude Include="BmpSave.h" />
+    <ClInclude Include="..\lib\cuda_common\helper_math.h">
+      <Filter>Scene_GPU</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="Scene.cu">
@@ -92,6 +95,9 @@
     </CudaCompile>
     <CudaCompile Include="RayTracer.cu" />
     <CudaCompile Include="Collision_Bezier.cu">
+      <Filter>Scene_GPU</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Collision_Mesh.cu">
       <Filter>Scene_GPU</Filter>
     </CudaCompile>
   </ItemGroup>

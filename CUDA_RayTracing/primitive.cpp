@@ -400,6 +400,12 @@ void Mesh::LoadModel(const std::string& filename)
         {
             Vector3 vertex;
             ss >> vertex.x >> vertex.y >> vertex.z;
+            vertex.x *= scale.x;
+            vertex.y *= scale.y;
+            vertex.z *= scale.z;
+            vertex.x += O.x;
+            vertex.y += O.y;
+            vertex.z += O.z;
             min.x = std::min(min.x, vertex.x);
             min.y = std::min(min.y, vertex.y);
             min.z = std::min(min.z, vertex.z);

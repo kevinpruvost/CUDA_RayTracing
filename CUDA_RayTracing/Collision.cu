@@ -280,6 +280,11 @@ __device__ bool intersect(Cuda_Primitive* primitive, const double3 * origin, con
             }
             break;
         }
+        case Cuda_Primitive_Type_Mesh:
+        {
+            MeshIntersect(primitive, origin, direction, collision);
+            break;
+        }
     }
 
     return collision->isCollide;
