@@ -2,8 +2,8 @@
 
 int main()
 {
-    Renderer renderer(1600, 900,
-        3840, 2160,
+    Renderer renderer(1280, 720,
+        1280, 720,
         "scene_mesh2.txt"
     );
     renderer.Render();

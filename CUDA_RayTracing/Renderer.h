@@ -72,10 +72,11 @@ private:
     void LoadScene(const std::string& scenePath);
     void GUI();
     void SaveTextureToBMP();
+    void ModifyViewport(int width, int height);
 
-    cudaArray* textureArray;
 
     GLFWwindow* window;
+    cudaArray* textureArray;
     GLuint texture;
     cudaGraphicsResource* cudaTextureResource;
     int width, height;

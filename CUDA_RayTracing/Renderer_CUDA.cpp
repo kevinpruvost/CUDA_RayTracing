@@ -438,7 +438,7 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int texture_width, int 
 void Renderer::ResetSceneInfos()
 {
     m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height)));
-    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 16);
+    cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 32);
 }
 
 void Renderer::ResetSettings()

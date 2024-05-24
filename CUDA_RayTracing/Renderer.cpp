@@ -35,8 +35,6 @@ Renderer::Renderer(int width, int height, int tWidth, int tHeight, const std::st
     InitOpenGL();
     InitCUDA();
     CreateTexture();
-    RegisterCUDAResources();
-    SetupQuad();
     SetupImGui();
 
     // Settings
@@ -94,6 +92,9 @@ void Renderer::InitOpenGL()
         exit(EXIT_FAILURE);
     }
 
+    // Block resize
+    glfwSetWindowSizeLimits(window, width, height, width, height);
+
     glfwSwapInterval(1);
     glViewport(0, 0, width, height);
 }
@@ -109,12 +110,21 @@ void Renderer::InitCUDA()
 
 void Renderer::CreateTexture()
 {
+    if (texture != 0) {
+        glDeleteTextures(1, &texture);
+        UnregisterCUDAResources();
+    }
+
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture_width, texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
+    RegisterCUDAResources();
+    SetupQuad();
+    m_surfaceContainer.reset();
+    ResetRendering();
 }
 
 void Renderer::RegisterCUDAResources()
@@ -130,7 +140,17 @@ void Renderer::UnregisterCUDAResources()
 {
     if (cudaTextureResource) {
         cudaGraphicsUnregisterResource(cudaTextureResource);
+        cudaTextureResource = nullptr;
     }
+}
+
+void Renderer::ModifyViewport(int w, int h)
+{
+    width = w;
+    height = h;
+    glViewport(0, 0, width, height);
+    glfwSetWindowSize(window, w, h);
+    glfwSetWindowSizeLimits(window, width, height, width, height);
 }
 
 void Renderer::SaveTextureToBMP()
@@ -162,6 +182,10 @@ void Renderer::SetupQuad()
         0, 1, 2,
         2, 3, 0
     };
+
+    if (vao != 0) glDeleteVertexArrays(1, &vao);
+    if (ebo != 0) glDeleteBuffers(1, &ebo);
+    if (vbo != 0) glDeleteBuffers(1, &vbo);
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -306,9 +330,123 @@ void Renderer::GUI()
     static const char* resamplingOptions[] = { "1", "2", "4", "8", "16", "32", "64", "128", "256", "512", "1024" };
     static int currentResamplingIdx = 0; // Index of the current resampling size
 
+    ImGui::Separator();
+    ImGui::Text("Window/Texture Settings");
+    ImGui::BeginChild("TextureFrame", ImVec2(0, 100), true, ImGuiWindowFlags_NoResize);
+    {
+        // Define the available resampling sizes
+        static const char* textureSizes[] = { "1024x576", "1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160" };
+        int textureSizeIdx = 0; // Index of the current resampling size
+
+        switch (texture_width)
+        {
+        case 1024:
+            textureSizeIdx = 0;
+            break;
+        case 1280:
+            textureSizeIdx = 1;
+            break;
+        case 1600:
+            textureSizeIdx = 2;
+            break;
+        case 1920:
+            textureSizeIdx = 3;
+            break;
+        case 2560:
+            textureSizeIdx = 4;
+            break;
+        case 3840:
+            textureSizeIdx = 5;
+            break;
+        }
+        // Display combo box to select texture size
+        if (ImGui::Combo("Texture Size", &textureSizeIdx, textureSizes, IM_ARRAYSIZE(textureSizes))) {
+            // Update texture size based on the selected option
+            switch (textureSizeIdx)
+            {
+            case 0:
+                texture_width = 1024;
+                texture_height = 576;
+                break;
+            case 1:
+                texture_width = 1280;
+                texture_height = 720;
+                break;
+            case 2:
+                texture_width = 1600;
+                texture_height = 900;
+                break;
+            case 3:
+                texture_width = 1920;
+                texture_height = 1080;
+                break;
+            case 4:
+                texture_width = 2560;
+                texture_height = 1440;
+                break;
+            case 5:
+                texture_width = 3840;
+                texture_height = 2160;
+                break;
+            }
+            CreateTexture();
+        }
+
+        int viewportSizeIdx = 0;
+
+        switch (width)
+        {
+        case 1024:
+            viewportSizeIdx = 0;
+            break;
+        case 1280:
+            viewportSizeIdx = 1;
+            break;
+        case 1600:
+            viewportSizeIdx = 2;
+            break;
+        case 1920:
+            viewportSizeIdx = 3;
+            break;
+        case 2560:
+            viewportSizeIdx = 4;
+            break;
+        case 3840:
+            viewportSizeIdx = 5;
+            break;
+        }
+
+        // Display combo box to select viewport size
+        if (ImGui::Combo("Viewport Size", &viewportSizeIdx, textureSizes, IM_ARRAYSIZE(textureSizes))) {
+            // Update viewport size based on the selected option
+            switch (viewportSizeIdx)
+            {
+            case 0:
+                ModifyViewport(1024, 576);
+                break;
+            case 1:
+                ModifyViewport(1280, 720);
+                break;
+            case 2:
+                ModifyViewport(1600, 900);
+                break;
+            case 3:
+                ModifyViewport(1920, 1080);
+                break;
+            case 4:
+                ModifyViewport(2560, 1440);
+                break;
+            case 5:
+                ModifyViewport(3840, 2160);
+                break;
+            }
+        }
+    }
+    ImGui::EndChild();
+
     // Create a subframe for settings
     ImGui::Separator();
-    ImGui::Text("Settings");
+    ImGui::Text("Post Processing Settings");
     ImGui::BeginChild("SettingsFrame", ImVec2(0, 100), true, ImGuiWindowFlags_NoResize);
     bool settingsChanged = false;
     {
