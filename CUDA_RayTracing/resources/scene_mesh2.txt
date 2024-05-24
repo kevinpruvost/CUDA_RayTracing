@@ -14,7 +14,7 @@ camera
 end
 
 light sphere
-    O= 6 6 6
+    O= -6 -6 6
     R= 0.1
     color= 1 1 1
 end
@@ -53,14 +53,14 @@ end
 # ================ objects ================
 
 primitive mesh
-    O= 2.6 7.14 -1.25
-    scale= 1 1 1
-    rotation= 0 -0.2808 0
-    file= test.obj
+    O= 0.4 4.34 -2
+    scale= 1.7 1.7 1.7
+    rotation= 1.6 0 -2
+    file= lucy3_tris_smooth_normalized.obj
     refl= 0.3
     drefl= 0.15
-    color= 1 0.8 0
-    diff= 1
-    spec= 0.8
+    color= 1 1 1
+    diff= 0.7
+    spec= 0.1
     refl= 0
 end

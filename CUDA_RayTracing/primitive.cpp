@@ -385,6 +385,11 @@ void Mesh::LoadModel(const std::string& filename)
         return;
     }
 
+    // Compute cos and sin of rotation angles
+    double cos_x = cos(rotation.x), sin_x = sin(rotation.x);
+    double cos_y = cos(rotation.y), sin_y = sin(rotation.y);
+    double cos_z = cos(rotation.z), sin_z = sin(rotation.z);
+
     char line[256];
     // First get all lines
     std::vector<Vector3> vertices;
@@ -400,6 +405,25 @@ void Mesh::LoadModel(const std::string& filename)
         {
             Vector3 vertex;
             ss >> vertex.x >> vertex.y >> vertex.z;
+
+            // Apply rotation around X axis
+            double y_new = cos_x * vertex.y - sin_x * vertex.z;
+            double z_new = sin_x * vertex.y + cos_x * vertex.z;
+            vertex.y = y_new;
+            vertex.z = z_new;
+
+            // Apply rotation around Y axis
+            double x_new = cos_y * vertex.x + sin_y * vertex.z;
+            z_new = -sin_y * vertex.x + cos_y * vertex.z;
+            vertex.x = x_new;
+            vertex.z = z_new;
+
+            // Apply rotation around Z axis
+            x_new = cos_z * vertex.x - sin_z * vertex.y;
+            y_new = sin_z * vertex.x + cos_z * vertex.y;
+            vertex.x = x_new;
+            vertex.y = y_new;
+
             vertex.x *= scale.x;
             vertex.y *= scale.y;
             vertex.z *= scale.z;
