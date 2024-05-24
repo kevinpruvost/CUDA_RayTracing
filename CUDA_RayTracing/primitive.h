@@ -193,4 +193,34 @@ public:
     Color GetTexture(Vector3 crash_C);
 };
 
+struct MeshBoundingBox
+{
+    MeshBoundingBox()
+        : left(nullptr), right(nullptr), triangle(nullptr)
+    {}
+    MeshBoundingBox* left, * right;
+    Vector3 min, max;
+    Triangle * triangle;
+};
+
+class Mesh : public Primitive {
+public:
+    Vector3 O, scale, rotation;
+    std::vector<Triangle> triangles;
+    Vector3 min, max;
+    MeshBoundingBox* root;
+
+public:
+    Mesh() : Primitive(), root(nullptr), min(BIG_DIST, BIG_DIST, BIG_DIST), max(-BIG_DIST, -BIG_DIST, -BIG_DIST)
+    { }
+    ~Mesh() {}
+
+    void Input(std::string, std::stringstream&);
+    CollidePrimitive Collide(Vector3 ray_O, Vector3 ray_V);
+    Color GetTexture(Vector3 crash_C);
+    void LoadModel(const std::string& filename);
+    void BuildBVH();
+    MeshBoundingBox* BuildBVHRecursive(std::vector<Triangle*>& tris, int depth);
+};
+
 #endif

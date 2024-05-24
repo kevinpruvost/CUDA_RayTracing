@@ -216,6 +216,7 @@ void Raytracer::CreateAll()
             if ( type == "cylinder" ) new_primitive = new Cylinder;
             if ( type == "bezier" ) new_primitive = new Bezier;
             if ( type == "triangle" ) new_primitive = new Triangle;
+            if (type == "mesh") new_primitive = new Mesh;
 
             if ( new_primitive != nullptr ) {
                 new_primitive->SetNext( primitive_head );

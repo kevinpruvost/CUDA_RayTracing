@@ -151,5 +151,8 @@
     <Text Include="resources\scene_mesh2.txt">
       <Filter>Resources</Filter>
     </Text>
+    <Text Include="resources\scene_mesh3.txt">
+      <Filter>Resources</Filter>
+    </Text>
   </ItemGroup>
 </Project>

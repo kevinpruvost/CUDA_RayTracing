@@ -69,6 +69,34 @@ Cuda_Light * createCudaLightsFromCPULights(Light* lights, int * lightCount)
     return cudaLights;
 }
 
+Cuda_Mesh * createCudaMeshFromCPUMesh(MeshBoundingBox * mesh)
+{
+    if (mesh == nullptr) return nullptr;
+    Cuda_Mesh* cudaMesh = nullptr;
+    MALLOC(&cudaMesh, sizeof(Cuda_Mesh));
+    MEMCPY(&cudaMesh->min, &mesh->min, sizeof(Vector3), cudaMemcpyHostToDevice);
+    MEMCPY(&cudaMesh->max, &mesh->max, sizeof(Vector3), cudaMemcpyHostToDevice);
+
+    Cuda_Triangle* tri = nullptr;
+    if (mesh->triangle) {
+        MALLOC(&tri, sizeof(Cuda_Triangle));
+        MEMCPY(&tri->O1, &mesh->triangle->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&tri->O2, &mesh->triangle->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&tri->O3, &mesh->triangle->O3, sizeof(Vector3), cudaMemcpyHostToDevice);
+        MEMCPY(&tri->N, &mesh->triangle->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+    }
+    MEMCPY(&cudaMesh->triangle, &tri, sizeof(Cuda_Triangle*), cudaMemcpyHostToDevice);
+
+    Cuda_Mesh* left = nullptr, * right = nullptr;
+    if (mesh->left)
+        left = createCudaMeshFromCPUMesh(mesh->left);
+    if (mesh->right)
+        right = createCudaMeshFromCPUMesh(mesh->right);
+    MEMCPY(&cudaMesh->left, &left, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
+    MEMCPY(&cudaMesh->right, &right, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
+    return cudaMesh;
+}
+
 Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int * primCount)
 {
     *primCount = 0;
@@ -192,6 +220,32 @@ Cuda_Primitive* createCudaPrimitivesFromCPUPrimitives(Primitive* primitives, int
             MEMCPY(&cudaPrimitives[i].data.triangle.O3, &triangle->O3, sizeof(Vector3), cudaMemcpyHostToDevice);
             MEMCPY(&cudaPrimitives[i].data.triangle.N, &triangle->N, sizeof(Vector3), cudaMemcpyHostToDevice);
         }
+        else if (dynamic_cast<Mesh*>(currentPrimitive) != nullptr)
+        {
+            type = Cuda_Primitive_Type_Mesh;
+
+            Mesh * mesh = dynamic_cast<Mesh*>(currentPrimitive);
+            MEMCPY(&cudaPrimitives[i].data.mesh.min, &mesh->min, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.mesh.max, &mesh->max, sizeof(Vector3), cudaMemcpyHostToDevice);
+            MeshBoundingBox* root = mesh->root;
+            Cuda_Triangle* tri = nullptr;
+            if (root->triangle) {
+                MALLOC(&tri, sizeof(Cuda_Triangle));
+                MEMCPY(&tri->O1, &root->triangle->O1, sizeof(Vector3), cudaMemcpyHostToDevice);
+                MEMCPY(&tri->O2, &root->triangle->O2, sizeof(Vector3), cudaMemcpyHostToDevice);
+                MEMCPY(&tri->O3, &root->triangle->O3, sizeof(Vector3), cudaMemcpyHostToDevice);
+                MEMCPY(&tri->N, &root->triangle->N, sizeof(Vector3), cudaMemcpyHostToDevice);
+            }
+            MEMCPY(&cudaPrimitives[i].data.mesh.triangle, &tri, sizeof(Cuda_Triangle*), cudaMemcpyHostToDevice);
+            
+            Cuda_Mesh* left = nullptr, * right = nullptr;
+            if (root->left)
+                left = createCudaMeshFromCPUMesh(root->left);
+            if (root->right)
+                right = createCudaMeshFromCPUMesh(root->right);
+            MEMCPY(&cudaPrimitives[i].data.mesh.left, &left, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
+            MEMCPY(&cudaPrimitives[i].data.mesh.right, &right, sizeof(Cuda_Mesh*), cudaMemcpyHostToDevice);
+        }
         MEMCPY(&cudaPrimitives[i].type, &type, sizeof(Cuda_Primitive_Type), cudaMemcpyHostToDevice);
 
         currentPrimitive = currentPrimitive->GetNext();
@@ -274,6 +328,33 @@ Cuda_Scene* createCudaSceneFromCPUScene(Raytracer * sceneCpu, int width, int hei
     return scene;
 }
 
+void FreeCudaMesh(Cuda_Mesh* mesh, int depth)
+{
+    // Free triangle
+    if (mesh->triangle)
+    {
+        FREE(mesh->triangle);
+    }
+
+    // Free left
+    if (mesh->left)
+    {
+        Cuda_Mesh left_freer;
+        MEMCPY(&left_freer, mesh->left, sizeof(Cuda_Mesh), cudaMemcpyDeviceToHost);
+        FreeCudaMesh(&left_freer, 1);
+        FREE(mesh->left);
+    }
+
+    // Free right
+    if (mesh->right)
+    {
+        Cuda_Mesh right_freer;
+        MEMCPY(&right_freer, mesh->right, sizeof(Cuda_Mesh), cudaMemcpyDeviceToHost);
+        FreeCudaMesh(&right_freer, 1);
+        FREE(mesh->right);
+    }
+}
+
 void FreeCudaScene(Cuda_Scene* cudaScene)
 {
     Cuda_Scene scene_freer;
@@ -282,11 +363,31 @@ void FreeCudaScene(Cuda_Scene* cudaScene)
     // Free random seeds
     FREE(scene_freer.seeds);
 
+    // Free Meshes
+    if (scene_freer.primitives) {
+        Cuda_Primitive* primitives = new Cuda_Primitive[scene_freer.primitiveCount];
+        MEMCPY(primitives, scene_freer.primitives, sizeof(Cuda_Primitive) * scene_freer.primitiveCount, cudaMemcpyDeviceToHost);
+        for (int i = 0; i < scene_freer.primitiveCount; ++i) {
+            if (primitives[i].type == Cuda_Primitive_Type_Mesh) {
+                Cuda_Mesh* mesh = &primitives[i].data.mesh;
+                Cuda_Mesh test;
+                FreeCudaMesh(mesh, 0);
+            }
+
+            // Free texture associated with the material if it exists
+            if (primitives[i].material.texture != nullptr) {
+                cudaFree(primitives[i].material.texture);
+            }
+        }
+        delete primitives;
+    }
+
     // Free primitives
     FREE(scene_freer.primitives);
 
     // Free Lights
     FREE(scene_freer.lights);
+
 
     // Free scene
     FREE(cudaScene);
@@ -336,8 +437,6 @@ void Renderer::launchCudaKernel(cudaArray* textureArray, int texture_width, int 
 
 void Renderer::ResetSceneInfos()
 {
-    m_surfaceContainer.reset(new SurfaceContainer(textureArray));
-
     m_sceneContainer.reset(new SceneContainer(createCudaSceneFromCPUScene(&raytracer, width, height)));
     cudaDeviceSetLimit(cudaLimitStackSize, 4096 * 16);
 }

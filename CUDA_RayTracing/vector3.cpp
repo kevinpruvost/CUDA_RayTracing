@@ -77,6 +77,14 @@ Vector3 operator - ( const Vector3& A ) {
     return Vector3( -A.x , -A.y , -A.z );
 }
 
+#include <cassert>
+
+double& Vector3::operator[](int a)
+{
+    assert( a >= 0 && a < 3 );
+    return a == 0 ? x : ( a == 1 ? y : z );
+}
+
 double Vector3::Dot( const Vector3& term ) const
 {
     return x * term.x + y * term.y + z * term.z;

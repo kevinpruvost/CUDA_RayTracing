@@ -33,6 +33,7 @@ primitive sphere
     R= 0.1
     color= 1 0 0
     diff= 1
+    refl= 0.3
 end
 
 primitive sphere
@@ -50,7 +51,7 @@ primitive sphere
     texture= marble.bmp
     De= 0 0 1
     Dc= 0 1 0
-    diff= 0.45
+    diff= 0.4
     spec= 0.25
     refl= 0.3
     drefl= 0.25

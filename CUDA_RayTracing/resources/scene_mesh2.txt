@@ -1,118 +1,38 @@
-# ============================================
-# Cornell Box Scene
-# Author: Yifei Li
-#
-#        ^ y
-#        |  left=1        right=99
-# -------.--/-------------/--> x
-#        - back=0
-#        |
-#        |
-#        |
-#        |
-#        |          ^
-#        |          @ camera=(50,-295.6,52)
-#        - front=-300
-#        |
-#
-# Height: [0, 81]
-#
-# ============================================
-
-# ================ background ================
-
-# blue sky
 background
-    top= 0.5 0.7 1.0
-    bottom= 1.0 1.0 1.0
+    color= 0.1 0.1 0.1
 end
 
-# ================ camera ================
-
 camera
-    O= 50 -295.6 52
-    N= 0 1 -0.04
+    O= -2 2 0.5
+    N= 0.6 1 -0.6
     shade_quality= 1
     drefl_quality= 1
-    image_H= 960
-    image_W= 1280
-    lens_H= 0.75
+    image_H= 900
+    image_W= 1600
+    lens_H= 0.6
     lens_W= 1.0
 end
 
-# ================ lights ================
-
-light point
-    O= 50 -81 65
-    color= 0.8 0.8 0.8
-end
-
-# ================ world ================
-
-# left wall
-primitive sphere
-    O= 10001 -81.6 40.8
-    R= 10000
-    color= 0.78 0.39 0.39
-    diff= 1
-end
-
-# right wall
-primitive sphere
-    O= -9901 -81.6 40.8
-    R= 10000
-    color= 0.45 0.39 0.86
-    diff= 1
-end
-
-# back wall
-primitive sphere
-    O= 50 -10000 40.8
-    R= 10000
-    color= 0.8 0.8 0.8
-    diff= 1
-end
-
-# front wall
-primitive sphere
-    O= 50 9700 40.8
-    R= 10000
-    color= .1 .1 .1
-    diff= 1
-end
-
-# ceil
-primitive sphere
-    O= 50 -81.6 -9919
-    R= 10000
-    color= 0.78 0.78 0.78
-    diff= 1
-end
-
-# floor
-primitive plane
-    N= 0 0 1
-    R= 0
+light sphere
+    O= 6 6 6
+    R= 0.1
     color= 1 1 1
-    diff= 0.7
-    refl= 0.1
-    drefl= 0.15
-    texture= floor.bmp
-    Dx= 99 0 0
-    Dy= 0 99 0
-    blur= exp
 end
 
-# ================ objects ================
+light sphere
+    O= 5 7 8
+    R= 0.1
+    color= 2 1 0.6
+end
 
 primitive sphere
-    O= 27 -47 16
-    R= 16
+    O= 0 6 -1.5
+    R= 0.5
     color= 1 1 1
     texture= marble.bmp
     De= 0 0 1
     Dc= 0 1 0
-    diff= 0.45
+    diff= 0.4
     spec= 0.25
     refl= 0.3
     drefl= 0.25
@@ -120,19 +40,40 @@ primitive sphere
 end
 
 primitive sphere
-    O= 79 -78 14
-    R= 14
-    color= 0.78 0.78 0.78
+    O= 2.6 7.14 -1.25
+    R= 0.75
     refr= 1
     rindex= 1.7
+    absor= 0 0 0
 end
 
-primitive mesh
-    O= 50 -81.6 40.8
-    scale= 10 10 10
-    color= 1 1 1
-    diff= 0.7
-    refl= 0.1
+primitive plane
+    N= 0 0 1
+    R= -2
+    color= 0.7 0.7 0.7
+    diff= 0.5
+    refl= 0.7
     drefl= 0.15
-    model= 
+    texture= stone.bmp
+    Dx= 1 0 0
+    Dy= 0 1 0
+end
+
+# ================ objects ================
+
+primitive mesh
+    O= 0 4 0
+    scale= 3 3 3
+    rotation= 0 -0.2808 0
+    file= lucy3_tris_normalized.obj
+    P= 1 5
+    P= 10 10
+    P= 15 20
+    P= 2 25
+    refl= 0.3
+    drefl= 0.15
+    color= 1 0.8 0
+    diff= 1
+    spec= 0.8
+    refl= 0
 end

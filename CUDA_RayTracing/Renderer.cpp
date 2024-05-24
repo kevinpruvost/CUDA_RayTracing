@@ -26,7 +26,7 @@ Renderer::Renderer(int width, int height, int tWidth, int tHeight, const std::st
     , m_sceneContainer(nullptr)
     , m_surfaceContainer(nullptr)
     , outputName{ "output.bmp" }
-    , generateOneImage{false}
+    , generateOneImage{ true }
     , texture_width{ tWidth }
     , texture_height{ tHeight }
 {
@@ -296,6 +296,10 @@ void Renderer::GUI()
             }
         }
         ImGui::EndCombo();
+    }
+    if (ImGui::Button("Reload"))
+    {
+        LoadScene(scenesStr[currentSceneIdx]);
     }
 
     // Define the available resampling sizes

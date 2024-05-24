@@ -1,0 +1,81 @@
+background
+    color= 0.1 0.1 0.1
+end
+
+camera
+    O= -2 2 0.5
+    N= 0.6 1 -0.6
+    shade_quality= 1
+    drefl_quality= 1
+    image_H= 900
+    image_W= 1600
+    lens_H= 0.6
+    lens_W= 1.0
+end
+
+# Light with pink color
+light sphere
+    O= 6 6 6
+    R= 0.1
+    color= 2 0.4 1.2
+end
+
+# Light with purple color
+light sphere
+    O= -5 12 8
+    R= 0.1
+    color= 0 0.4 2
+end
+
+primitive sphere
+    O= 0 6 -1.5
+    R= 0.5
+    color= 1 1 1
+    texture= marble.bmp
+    De= 0 0 1
+    Dc= 0 1 0
+    diff= 0.4
+    spec= 0.25
+    refl= 0.3
+    drefl= 0.25
+    blur= exp
+end
+
+primitive sphere
+    O= 2.6 7.14 -1.25
+    R= 0.75
+    refr= 1
+    rindex= 1.7
+    absor= 0 0 0
+end
+
+primitive plane
+    N= 0 0 1
+    R= -2
+    color= 0.7 0.7 0.7
+    diff= 0.5
+    refl= 1
+    drefl= 0.3
+    texture= rusty_floor.bmp
+    Dx= 2 0 0
+    Dy= 0 2 0
+end
+
+# ================ objects ================
+
+primitive mesh
+    O= 0 4 0
+    scale= 3 3 3
+    rotation= 0 -0.2808 0
+    file= lucy3_tris_normalized.obj
+    P= 1 5
+    P= 10 10
+    P= 15 20
+    P= 2 25
+    refl= 0.3
+    drefl= 0.15
+    color= 1 0.8 0
+    diff= 1
+    spec= 0.8
+    refl= 0
+end

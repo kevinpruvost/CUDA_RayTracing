@@ -26,6 +26,7 @@ public:
     friend Vector3& operator /= ( Vector3& , const double& );
     friend Vector3& operator *= ( Vector3& , const Vector3& ); //cross product
     friend Vector3 operator - ( const Vector3& );
+    double & operator[] ( int );
 
     double Dot( const Vector3& ) const;
     double Module2() const;

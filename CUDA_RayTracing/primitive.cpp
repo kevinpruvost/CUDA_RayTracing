@@ -340,3 +340,167 @@ Color Triangle::GetTexture(Vector3 crash_C)
 {
     return Color();
 }
+
+void Mesh::Input(std::string var , std::stringstream& fin)
+{
+    if (var == "O=")
+    {
+        O.Input(fin);
+    }
+    if (var == "rotation=")
+    {
+        rotation.Input(fin);
+    }
+    if (var == "scale=")
+    {
+        scale.Input(fin);
+    }
+    if (var == "file=")
+    {
+        std::string file;
+        fin >> file;
+        LoadModel(file);
+    }
+    Primitive::Input(var, fin);
+}
+
+CollidePrimitive Mesh::Collide(Vector3 ray_O, Vector3 ray_V)
+{
+    return CollidePrimitive();
+}
+
+Color Mesh::GetTexture(Vector3 crash_C)
+{
+    return Color();
+}
+
+void Mesh::LoadModel(const std::string& filename)
+{
+    // Will only be obj files with stricly vertices and faces
+    FILE* file;
+
+    if (fopen_s(&file, filename.c_str(), "r") != 0 || file == NULL)
+    {
+        std::cerr << "Error: Cannot open file " << filename << std::endl;
+        return;
+    }
+
+    char line[256];
+    // First get all lines
+    std::vector<Vector3> vertices;
+    vertices.reserve(50000);
+    triangles.reserve(70000);
+    while (fgets(line, 256, file))
+    {
+        std::stringstream ss;
+        ss << line;
+        std::string type;
+        ss >> type;
+        if (type == "v")
+        {
+            Vector3 vertex;
+            ss >> vertex.x >> vertex.y >> vertex.z;
+            min.x = std::min(min.x, vertex.x);
+            min.y = std::min(min.y, vertex.y);
+            min.z = std::min(min.z, vertex.z);
+            max.x = std::max(max.x, vertex.x);
+            max.y = std::max(max.y, vertex.y);
+            max.z = std::max(max.z, vertex.z);
+            vertices.push_back(vertex);
+        }
+        else if (type == "f")
+        {
+            std::vector<int> face(3, 0);
+            int vertex;
+            int i = 0;
+            while (ss >> vertex)
+            {
+                face[i++] = vertex - 1;
+            }
+            Triangle tri;
+            tri.O1 = vertices[face[0]];
+            tri.O2 = vertices[face[1]];
+            tri.O3 = vertices[face[2]];
+            tri.N = ((tri.O2 - tri.O1) * (tri.O3 - tri.O1)).GetUnitVector();
+            triangles.push_back(tri);
+        }
+    }
+
+    BuildBVH();
+}
+
+void Mesh::BuildBVH()
+{
+    // Build BVH
+    std::vector<Triangle*> tris;
+    for (auto& tri : triangles)
+    {
+        tris.push_back(&tri);
+    }
+    root = BuildBVHRecursive(tris, 0);
+}
+
+MeshBoundingBox* Mesh::BuildBVHRecursive(std::vector<Triangle*>& tris, int depth) {
+    if (tris.empty()) {
+        return nullptr;
+    }
+
+    MeshBoundingBox* node = new MeshBoundingBox();
+
+    if (tris.size() == 1) {
+        node->triangle = tris[0];
+        node->min = Vector3(
+            std::min({ tris[0]->O1.x, tris[0]->O2.x, tris[0]->O3.x }),
+            std::min({ tris[0]->O1.y, tris[0]->O2.y, tris[0]->O3.y }),
+            std::min({ tris[0]->O1.z, tris[0]->O2.z, tris[0]->O3.z })
+        );
+        node->max = Vector3(
+            std::max({ tris[0]->O1.x, tris[0]->O2.x, tris[0]->O3.x }),
+            std::max({ tris[0]->O1.y, tris[0]->O2.y, tris[0]->O3.y }),
+            std::max({ tris[0]->O1.z, tris[0]->O2.z, tris[0]->O3.z })
+        );
+        return node;
+    }
+
+    // Compute the bounding box for the current set of triangles
+    double maxNumericLimit = std::numeric_limits<double>::max();
+    Vector3 centroidMin(maxNumericLimit, maxNumericLimit, maxNumericLimit), centroidMax(-maxNumericLimit, -maxNumericLimit, -maxNumericLimit);
+    for (auto& tri : tris) {
+        Vector3 centroid = (tri->O1 + tri->O2 + tri->O3) / 3.0f;
+        centroidMin.x = std::min(centroidMin.x, centroid.x);
+        centroidMin.y = std::min(centroidMin.y, centroid.y);
+        centroidMin.z = std::min(centroidMin.z, centroid.z);
+        centroidMax.x = std::max(centroidMax.x, centroid.x);
+        centroidMax.y = std::max(centroidMax.y, centroid.y);
+        centroidMax.z = std::max(centroidMax.z, centroid.z);
+    }
+
+    // Choose the axis to split on
+    int axis = depth % 3;
+    std::sort(tris.begin(), tris.end(), [axis](Triangle* a, Triangle* b) {
+        Vector3 centroidA = (a->O1 + a->O2 + a->O3) / 3.0f;
+        Vector3 centroidB = (b->O1 + b->O2 + b->O3) / 3.0f;
+        return centroidA[axis] < centroidB[axis];
+    });
+
+    size_t mid = tris.size() / 2;
+    std::vector<Triangle*> leftTris(tris.begin(), tris.begin() + mid);
+    std::vector<Triangle*> rightTris(tris.begin() + mid, tris.end());
+
+    node->left = BuildBVHRecursive(leftTris, depth + 1);
+    node->right = BuildBVHRecursive(rightTris, depth + 1);
+
+    node->min = Vector3(
+        std::min(node->left ? node->left->min.x : std::numeric_limits<float>::max(), node->right ? node->right->min.x : std::numeric_limits<float>::max()),
+        std::min(node->left ? node->left->min.y : std::numeric_limits<float>::max(), node->right ? node->right->min.y : std::numeric_limits<float>::max()),
+        std::min(node->left ? node->left->min.z : std::numeric_limits<float>::max(), node->right ? node->right->min.z : std::numeric_limits<float>::max())
+    );
+
+    node->max = Vector3(
+        std::max(node->left ? node->left->max.x : -std::numeric_limits<float>::max(), node->right ? node->right->max.x : -std::numeric_limits<float>::max()),
+        std::max(node->left ? node->left->max.y : -std::numeric_limits<float>::max(), node->right ? node->right->max.y : -std::numeric_limits<float>::max()),
+        std::max(node->left ? node->left->max.z : -std::numeric_limits<float>::max(), node->right ? node->right->max.z : -std::numeric_limits<float>::max())
+    );
+
+    return node;
+}

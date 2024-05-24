@@ -9,8 +9,8 @@ end
 # ================ camera ================
 
 camera
-    O= 50 -295.6 52
-    N= 0 0.5 -0.04
+    O= 0.309 2.079 -1.854
+    N= -0.482 -0.643 0.596  # Adjusted orientation vector to look at the sphere
     shade_quality= 1
     drefl_quality= 1
     image_H= 960
@@ -22,8 +22,8 @@ end
 # ================ lights ================
 
 light sphere
-    O= 0 -200 65
-    R= 2
+    O= 2.062 3.48 -1.242
+    R= 0.5
     color= 1 1 1
 end
 
@@ -32,23 +32,24 @@ end
 # floor
 primitive plane
     N= 0 0 1
-    R= 0
+    R= 1.854
     color= 1 1 1
-    diff= 0.7
+    diff= 0.9
     refl= 0.1
-    drefl= 0.15
-    texture= floor.bmp
-    Dx= 99 0 0
-    Dy= 0 99 0
+    drefl= 0.05
+    texture= stone.bmp
+    Dx= 1 0 0
+    Dy= 0 1 0
     blur= exp
 end
 
 # ================ objects ================
 
 primitive mesh
-    O= 50 -10 0
-    scale= 1 1 1
-    file= stanford-bunny.obj
+    O= 0 0 0
+    scale= 3 3 3
+    rotation= 0 0 0
+    file= lucy3_tris_normalized.obj
     P= 1 5
     P= 10 10
     P= 15 20
@@ -59,4 +60,12 @@ primitive mesh
     diff= 1
     spec= 0.8
     refl= 0
+end
+
+primitive sphere
+    O= -2 -1 1
+    R= 1
+    color= 0.5 0.5 1
+    spec= 0.2
+    refl= 0.8
 end

@@ -24,7 +24,8 @@ enum Cuda_Primitive_Type
     Cuda_Primitive_Type_Square,
     Cuda_Primitive_Type_Cylinder,
     Cuda_Primitive_Type_Bezier,
-    Cuda_Primitive_Type_Triangle
+    Cuda_Primitive_Type_Triangle,
+    Cuda_Primitive_Type_Mesh
 };
 
 struct Cuda_Triangle {
@@ -60,6 +61,14 @@ struct Cuda_Cylinder {
     double R;    // Radius of the cylinder
 };
 
+// Struct for Mesh based on the BVH in Mesh
+struct Cuda_Mesh {
+    Cuda_Mesh* left;
+    Cuda_Mesh* right;
+    Cuda_Triangle* triangle;
+    double3 min, max;
+};
+
 // Struct for Bezier
 struct Cuda_Bezier {
     double3 O1;  // Start point
@@ -82,6 +91,7 @@ union Cuda_Primitive_Data {
     Cuda_Cylinder cylinder;
     Cuda_Bezier bezier;
     Cuda_Triangle triangle;
+    Cuda_Mesh mesh;
     // Add other primitives here (like triangle) if needed
 };
 
