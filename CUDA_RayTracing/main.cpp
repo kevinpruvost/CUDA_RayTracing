@@ -10,8 +10,8 @@ int main()
     renderer.settings.depthOfField.enabled = true;
     renderer.settings.depthOfField.aperture = 70;
     renderer.settings.depthOfField.focalDistance = 168;
-    renderer.Render();
-    //renderer.RenderInParallel("scene_final.bmp", 32, 70, 168);
+    //renderer.Render();
+    renderer.RenderInParallel("scene_final.bmp", 32, 70, 168);
     //renderer.RenderInParallel("super_fine_one.bmp", 32, 1, 1.35);
     return 0;
 }
