@@ -7,7 +7,6 @@ int main()
         1920, 1080,
         "scene_final.txt"
     );
-    renderer.settings.depthOfField.enabled = true;
     renderer.settings.depthOfField.aperture = 70;
     renderer.settings.depthOfField.focalDistance = 168;
     renderer.Render();

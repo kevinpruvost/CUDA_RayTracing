@@ -75,8 +75,9 @@ private:
     void GUI();
     void SaveTextureToBMP();
     void ModifyViewport(int width, int height);
+    void ResetRendering();
 
-
+public:
     GLFWwindow* window;
     cudaArray* textureArray;
     GLuint texture;
@@ -91,8 +92,6 @@ private:
     std::string scenePath;
     int frameIndex;
     const int maxFrames;
-
-    void ResetRendering();
 
     int segmentation;
     bool firstImage;

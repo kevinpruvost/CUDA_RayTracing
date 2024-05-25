@@ -90,7 +90,7 @@ primitive plane
     diff= 0.7
     refl= 0.1
     drefl= 0.15
-    texture= rusty_floor.bmp
+    texture= floor.bmp
     Dx= 99 0 0
     Dy= 0 99 0
     blur= exp
@@ -131,10 +131,10 @@ primitive mesh
 end
 
 primitive mesh
-    O= 74 -138 -8
-    scale= 240 240 240
-    rotation= 1.6 0 -1
-    file= stanford-bunny.obj
+    O= 79 -138 0
+    scale= 60 60 60
+    rotation= 1.6 0 -2
+    file= lucy3_tris_smooth_normalized.obj
     color= 1 1 1
     diff= 0.8
     spec= 0.2
