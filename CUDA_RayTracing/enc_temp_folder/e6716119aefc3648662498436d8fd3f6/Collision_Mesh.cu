@@ -74,7 +74,6 @@ __device__ bool MeshIntersect(Cuda_Mesh * mesh, const double3* origin, const dou
     }
     if (!IntersectBoundingBox(origin, direction, &mesh->min, &mesh->max)) return false;
     bool f1 = MeshIntersect(mesh->left, origin, direction, collision, depth + 1);
-    // OMG THIS FUCKING BUG, I forgot that Bounding boxes can overlap so... DO NOT SKIP THE TWO BRANCHES, IF ONE SUCCEEDS THEN MAYBE THE SECOND IS BETTER
     bool f2 = MeshIntersect(mesh->right, origin, direction, collision, depth + 1);
     return f1 || f2;
 }

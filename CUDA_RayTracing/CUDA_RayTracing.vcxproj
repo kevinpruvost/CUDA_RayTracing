@@ -251,6 +251,7 @@
     <Text Include="resources\scene4.txt" />
     <Text Include="resources\scene5.txt" />
     <Text Include="resources\scene_bezier.txt" />
+    <Text Include="resources\scene_final.txt" />
     <Text Include="resources\scene_mesh1.txt" />
     <Text Include="resources\scene_mesh2.txt" />
     <Text Include="resources\scene_mesh3.txt" />
