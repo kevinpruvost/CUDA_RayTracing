@@ -43,7 +43,7 @@ Depth of field (DoF) is an effect that simulates the focus properties of a camer
   <tr>
     <td>
       <img src="CUDA_RayTracing/resources/screenshot3-1.jpg" alt="Low Quality Purple Statue Scene">
-      <div><em>Low Quality Purple Statue Scene</em>: Scene with multiple objects and the Stanford Lucy Statue (70k triangles) (1 sample) (1280x720), rendered in ~10s</div>
+      <div><em>Low Quality Purple Statue Scene</em>: Scene with multiple objects and the Stanford Lucy Statue (34k triangles) (1 sample) (1280x720), rendered in ~10s</div>
     </td>
     <td>
       <img src="CUDA_RayTracing/resources/screenshot3-2.jpg" alt="High Quality Purple Statue Scene">
