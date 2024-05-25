@@ -4,6 +4,8 @@
 
 This project implements ray tracing using CUDA for computation and OpenGL for rendering. It leverages the `cuda_gl_interop` library provided by Nvidia for efficient data transfer between CUDA and OpenGL. The implementation includes various geometric primitives, bounding volume hierarchy (BVH) for acceleration, and depth of field effects.
 
+> **⚠️ Warning:** This project was intended to be a technical and fast experimentation. The code here does not reflect my full capabilities in terms of code architecture and optimization. I just wanted to spend 5 days learning as much new technical notions as possible.
+
 ## Implemented Features
 
 ### Geometric Primitives
