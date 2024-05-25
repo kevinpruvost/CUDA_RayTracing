@@ -3,11 +3,12 @@
 #include <device_launch_parameters.h>
 #include <iostream>
 #include <thread>
+#include <atomic>
 #include "RayTracer.cuh"
 
 __device__ __shared__ curandState globalState[N_BLOCK];
 
-__global__ void initCurand(unsigned long * seed)
+__global__ void initCurand(unsigned long* seed)
 {
     int idx = threadIdx.x;
     curand_init(idx, idx, 0, &globalState[idx]);
@@ -19,22 +20,6 @@ __device__ float frand()
     return curand_uniform(&globalState[idx]);
 }
 
-//// Utility function to perform linear interpolation
-//__device__ double3 lerp(const double3& a, const double3& b, float t) {
-//    return {
-//        a.x + t * (b.x - a.x),
-//        a.y + t * (b.y - a.y),
-//        a.z + t * (b.z - a.z)
-//    };
-//}
-//
-//// Simple background color function
-//__device__ double3 traceRay(const double3& origin, const double3& direction) {
-//    // Linearly interpolate between white and blue based on the y coordinate
-//    float t = 0.5f * (direction.y + 1.0f);
-//    return lerp({ 1.0f, 1.0f, 1.0f }, { 0.5f, 0.7f, 1.0f }, t);
-//}
-
 __device__ double2 randomInUnitDisk() {
     double2 p;
     do {
@@ -43,7 +28,7 @@ __device__ double2 randomInUnitDisk() {
     return p;
 }
 
-__device__ void modifyRayForDepthOfField(double3& origin, double3& direction, double focalDistance, double aperture, Cuda_Camera * camera, const double3 & focal_point)
+__device__ void modifyRayForDepthOfField(double3& origin, double3& direction, double focalDistance, double aperture, Cuda_Camera* camera, const double3& focal_point)
 {
     double2 random = make_double2(frand() - 0.5, frand() - 0.5) * aperture / 10.0f;
     double3 offset = camera->Dx * random.x + camera->Dy * random.y;
@@ -52,7 +37,7 @@ __device__ void modifyRayForDepthOfField(double3& origin, double3& direction, do
     direction = normalize(focal_point - origin);
 }
 
-__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings * settings, int * progress)
+__global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings* settings, int* progress)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -104,12 +89,12 @@ __global__ void rayTraceKernel(cudaSurfaceObject_t surface, int texture_width, i
     surf2Dwrite(outputColor, surface, surface_x * sizeof(uchar4), surface_y);
 
     if (progress) {
-        *progress += 1;
+        atomicAdd(progress, 1); // Atomically update progress
     }
 }
 
 // Wrapper function to launch the kernel
-void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene * scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings * settings)
+void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int texture_height, int viewport_width, int viewport_height, Cuda_Scene* scene, int x_progress, int y_progress, int width_to_do, int height_to_do, Settings* settings)
 {
     // Define block and grid sizes
     dim3 threadsPerBlock(BLOCK_SIZE, BLOCK_SIZE);
@@ -120,7 +105,7 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int te
     cudaMemcpy(&seeds, &scene->seeds, sizeof(unsigned long*), cudaMemcpyDeviceToHost);
     initCurand << <blocksPerGrid, threadsPerBlock >> > (seeds);
     cudaDeviceSynchronize();
-    rayTraceKernel<<<blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, x_progress, y_progress, width_to_do, height_to_do, settings, nullptr);
+    rayTraceKernel << <blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, x_progress, y_progress, width_to_do, height_to_do, settings, nullptr);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();
@@ -132,11 +117,11 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int te
     cudaDeviceSynchronize();
 }
 
-void printProgress(int textureWidth, int textureHeight, int * progress, bool * done)
+void printProgress(int textureWidth, int textureHeight, int* progress, bool* done)
 {
     while (!*done)
     {
-        std::cout << "Progress: " << *progress << " " << (double)(*progress) / (double)(textureWidth * textureHeight) << "%" << std::endl;
+        std::cout << "Progress: " << *progress << " " << (double)(*progress) / (double)(textureWidth * textureHeight) * 100 << "%" << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     std::cout << "Completed !" << std::endl;
@@ -157,10 +142,13 @@ void launchRayTraceKernelParallel(cudaSurfaceObject_t surface, int texture_width
     cudaDeviceSynchronize();
 
     bool done = false;
-    int progress = 0;
-    std::thread progressThread(printProgress, texture_width, texture_height, &progress, &done);
+    int* progress;
+    cudaMallocHost(&progress, sizeof(int)); // Allocate page-locked memory for progress
+    *progress = 0;
 
-    rayTraceKernel << <blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, 0, 0, texture_width, texture_height, settings, &progress);
+    std::thread progressThread(printProgress, texture_width, texture_height, progress, &done);
+
+    rayTraceKernel << <blocksPerGrid, threadsPerBlock >> > (surface, texture_width, texture_height, viewport_width, viewport_height, scene, 0, 0, texture_width, texture_height, settings, progress);
 
     // Ensure kernel launch is successful
     cudaError_t err = cudaGetLastError();
@@ -173,4 +161,6 @@ void launchRayTraceKernelParallel(cudaSurfaceObject_t surface, int texture_width
 
     done = true;
     progressThread.join();
+
+    cudaFreeHost(progress); // Free the page-locked memory
 }
