@@ -27,14 +27,38 @@ Depth of field (DoF) is an effect that simulates the focus properties of a camer
 
 ## Screenshots
 
-- ![Screenshot 1](resources/purple_ball.jpg)
-  - *Purple reflective sphere*: First test with DOF (Depth of Field) ON and 128 samples, rendered in less than 1s
-- ![Screenshot 2](resources/or.jpg)
-  - *Orange Scene*: Multiple balls rendered with 64 samples & DOF ON rendered in ~8s
-- ![Screenshot 3-1](resources/screenshot3-1.jpg)
-  - *Low Quality Purple Statue Scene*: Scene with multiple objects and the Stanford Lucy Statue (70k triangles) (1 sample) (1280x720), rendered in ~10s
-- ![Screenshot 3-2](resources/screenshot3-2.jpg)
-  - *High Quality Purple Statue Scene*: Scene with multiple objects and the Stanford Lucy Statue (70k triangles) (32 samples) (1920x1080), rendered in ~1.5h
+<table>
+  <tr>
+    <td>
+      <img src="CUDA_RayTracing/resources/purple_ball.jpg" alt="Purple reflective sphere">
+      <div><em>Purple reflective sphere</em>: First test with DOF (Depth of Field) ON and 128 samples, rendered in less than 1s</div>
+    </td>
+    <td>
+      <img src="CUDA_RayTracing/resources/or.jpg" alt="Orange Scene">
+      <div><em>Orange Scene</em>: Multiple balls rendered with 64 samples & DOF ON rendered in ~8s</div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="CUDA_RayTracing/resources/screenshot3-1.jpg" alt="Low Quality Purple Statue Scene">
+      <div><em>Low Quality Purple Statue Scene</em>: Scene with multiple objects and the Stanford Lucy Statue (70k triangles) (1 sample) (1280x720), rendered in ~10s</div>
+    </td>
+    <td>
+      <img src="CUDA_RayTracing/resources/screenshot3-2.jpg" alt="High Quality Purple Statue Scene">
+      <div><em>High Quality Purple Statue Scene</em>: Scene with multiple objects and the Stanford Lucy Statue (34k triangles) (32 samples) (3840x2160), rendered in ~3h</div>
+    </td>
+  </tr>
+    <tr>
+    <td>
+      <img src="CUDA_RayTracing/resources/screenshot4.jpg" alt="Diffused Crystal Statue Scene">
+      <div><em>Diffused Crystal Statue Scene</em>: Scene with multiple objects and the Stanford Lucy Statue with crystal like properties mixed with white diffuse color (34k triangles) (32 samples) (1920x1080), rendered in ~1h</div>
+    </td>
+    <td>
+      <img src="CUDA_RayTracing/resources/screenshot_final.jpg" alt="Final Scene">
+      <div><em>Final Scene</em>: Scene with a Stanford Lucy Statue and Stanford Bunny (34k + 70k triangles) (32 samples) (1920x1080), rendered in ~3h</div>
+    </td>
+  </tr>
+</table>
 
 ## Getting Started
 
