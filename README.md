@@ -4,7 +4,7 @@
 
 This project implements ray tracing using CUDA for computation and OpenGL for rendering. It leverages the `cuda_gl_interop` library provided by Nvidia for efficient data transfer between CUDA and OpenGL. The implementation includes various geometric primitives, bounding volume hierarchy (BVH) for acceleration, and depth of field effects.
 
-> **⚠️ Warning:** This project was intended to be a technical and fast experimentation. The code here does not reflect my full capabilities in terms of code architecture and optimization. I just wanted to spend 5 days learning as much new technical notions as possible.
+> **⚠️ Warning:** This project was intended to be a technical and fast experimentation. The code here does not reflect my full capabilities in terms of code architecture and optimization. I just wanted to spend 5 days learning as much new technical notions as possible. There are still technical points that I need to fix later also.
 
 ## Implemented Features
 
@@ -112,6 +112,7 @@ Use Nvidia NSight Compute for detailed performance analysis and optimization of 
 - [Post on how occupancy influences kernel performances](https://stackoverflow.com/questions/6688534/cuda-dependence-of-kernel-performance-on-occupancy)
 - [BVH: Bounding Volume Hierarchy](https://en.wikipedia.org/wiki/Bounding_volume_hierarchy)
 - [Acceleration Techniques (BVH/Kd-Tree/Octree)](https://www.csie.ntu.edu.tw/~cyy/courses/rendering/15fall/lectures/handouts/chap04_acceleration_4up.pdf)
+- [GDC Convention on Fundamental Optimizations](https://developer.download.nvidia.com/GTC/PDF/1083_Wang.pdf)
 
 ## Notes
 
