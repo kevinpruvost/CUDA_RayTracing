@@ -119,10 +119,13 @@ void launchRayTraceKernel(cudaSurfaceObject_t surface, int texture_width, int te
 
 void printProgress(int textureWidth, int textureHeight, int* progress, bool* done)
 {
+    int seconds = 0;
     while (!*done)
     {
         std::cout << "Progress: " << *progress << " " << (double)(*progress) / (double)(textureWidth * textureHeight) * 100 << "%" << std::endl;
+        std::cout << "Time remaining: " << (double)(textureWidth * textureHeight - *progress) / (double)(*progress + 1) * seconds << "s" << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
+        seconds++;
     }
     std::cout << "Completed !" << std::endl;
 }

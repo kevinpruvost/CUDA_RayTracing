@@ -33,6 +33,13 @@ light sphere
     color= 0 0 0.8
 end
 
+
+light sphere
+    O= 20 -181 65
+    R= 5
+    color= 0.8 0 0
+end
+
 # ================ world ================
 
 # left wall
@@ -118,6 +125,16 @@ primitive mesh
     scale= 0.2 0.2 0.2
     rotation= 1.6 0 -0.5
     file= lucy3_tris_smooth.obj
+    color= 1 1 1
+    diff= 0.8
+    spec= 0.2
+end
+
+primitive mesh
+    O= 79 -138 0
+    scale= 60 60 60
+    rotation= 1.6 0 -2
+    file= lucy3_tris_smooth_normalized.obj
     color= 1 1 1
     diff= 0.8
     spec= 0.2

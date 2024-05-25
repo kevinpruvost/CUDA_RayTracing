@@ -335,25 +335,28 @@ void Renderer::GUI()
     ImGui::BeginChild("TextureFrame", ImVec2(0, 100), true, ImGuiWindowFlags_NoResize);
     {
         // Define the available resampling sizes
-        static const char* textureSizes[] = { "1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160" };
+        static const char* textureSizes[] = { "640x360", "1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160" };
         int textureSizeIdx = 0; // Index of the current resampling size
 
         switch (texture_width)
         {
-        case 1280:
+        case 640:
             textureSizeIdx = 0;
             break;
-        case 1600:
+        case 1280:
             textureSizeIdx = 1;
             break;
-        case 1920:
+        case 1600:
             textureSizeIdx = 2;
             break;
-        case 2560:
+        case 1920:
             textureSizeIdx = 3;
             break;
-        case 3840:
+        case 2560:
             textureSizeIdx = 4;
+            break;
+        case 3840:
+            textureSizeIdx = 5;
             break;
         }
         // Display combo box to select texture size
@@ -362,22 +365,26 @@ void Renderer::GUI()
             switch (textureSizeIdx)
             {
             case 0:
+                texture_width = 640;
+                texture_height = 360;
+                break;
+            case 1:
                 texture_width = 1280;
                 texture_height = 720;
                 break;
-            case 1:
+            case 2:
                 texture_width = 1600;
                 texture_height = 900;
                 break;
-            case 2:
+            case 3:
                 texture_width = 1920;
                 texture_height = 1080;
                 break;
-            case 3:
+            case 4:
                 texture_width = 2560;
                 texture_height = 1440;
                 break;
-            case 4:
+            case 5:
                 texture_width = 3840;
                 texture_height = 2160;
                 break;
@@ -389,20 +396,23 @@ void Renderer::GUI()
 
         switch (width)
         {
-        case 1280:
+        case 640:
             viewportSizeIdx = 0;
             break;
-        case 1600:
+        case 1280:
             viewportSizeIdx = 1;
             break;
-        case 1920:
+        case 1600:
             viewportSizeIdx = 2;
             break;
-        case 2560:
+        case 1920:
             viewportSizeIdx = 3;
             break;
-        case 3840:
+        case 2560:
             viewportSizeIdx = 4;
+            break;
+        case 3840:
+            viewportSizeIdx = 5;
             break;
         }
 
@@ -412,18 +422,21 @@ void Renderer::GUI()
             switch (viewportSizeIdx)
             {
             case 0:
-                ModifyViewport(1280, 720);
+                ModifyViewport(640, 360);
                 break;
             case 1:
-                ModifyViewport(1600, 900);
+                ModifyViewport(1280, 720);
                 break;
             case 2:
-                ModifyViewport(1920, 1080);
+                ModifyViewport(1600, 900);
                 break;
             case 3:
-                ModifyViewport(2560, 1440);
+                ModifyViewport(1920, 1080);
                 break;
             case 4:
+                ModifyViewport(2560, 1440);
+                break;
+            case 5:
                 ModifyViewport(3840, 2160);
                 break;
             }

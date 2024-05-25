@@ -17,14 +17,14 @@ end
 light sphere
     O= 6 -6 6
     R= 0.1
-    color= 0.427 0.24 2
+    color= 1 1 1
 end
 
 # Light with purple color
 light sphere
     O= -6 6 6
     R= 0.1
-    color= 0 0.4 2
+    color= 1 1 1
 end
 
 primitive sphere
@@ -96,6 +96,7 @@ primitive mesh
     rotation= 1.6 0 -2
     file= lucy3_tris_normalized.obj
     color= 1 1 1
-    diff= 0.8
+    diff= 0.5
     spec= 0.2
+    refl= 0.8
 end
